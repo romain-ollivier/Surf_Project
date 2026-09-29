@@ -1,0 +1,63 @@
+version: 2
+
+models:
+
+  - name: stg_copernicus_insitu
+    description: "Observations marines in-situ nettoyées et préparées pour les transformations analytiques."
+
+    columns:
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: platform_id
+        description: "Identifiant de la plateforme ou de la station Copernicus."
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: "Date et heure de l'observation en UTC."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude de la plateforme Copernicus."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude de la plateforme Copernicus."
+        data_tests:
+          - not_null
+
+      - name: variable
+        description: "Code de la variable Copernicus observée."
+        data_tests:
+          - not_null
+
+      - name: value
+        description: "Valeur brute de la variable observée."
+      
+      - name: value_qc
+        description: "Code de contrôle qualité fourni par Copernicus."
+
+      - name: institution
+        description: "Institution responsable ou associée à la plateforme."
+
+      - name: doi
+        description: "DOI associé à l'observation ou à la plateforme."
+
+      - name: product_doi
+        description: "DOI du produit Copernicus."
+
+      - name: ingested_at
+        description: "Date et heure d'ingestion dans PostgreSQL."
+        data_tests:
+          - not_null

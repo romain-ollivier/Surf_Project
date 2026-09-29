@@ -1,0 +1,154 @@
+version: 2
+
+models:
+
+  - name: int_surf_conditions
+    description: >
+      Conditions météorologiques et marines horaires combinées pour chaque
+      spot de surf. Une ligne correspond à un spot et un timestamp UTC.
+
+    columns:
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_spots')
+                field: spot_id
+
+              
+
+      - name: spot_name
+        description: "Nom du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: country
+        description: "Pays dans lequel se situe le spot."
+
+      - name: region
+        description: "Région ou zone géographique dans laquelle se situe le spot."
+
+      - name: observation_time
+        description: "Date et heure de l'observation en UTC."
+        data_tests:
+          - not_null
+
+      - name: air_temperature_c
+        description: "Température de l'air en degrés Celsius."
+
+      - name: apparent_temperature_c
+        description: "Température ressentie en degrés Celsius."
+
+      - name: dew_point_c
+        description: "Température du point de rosée en degrés Celsius."
+
+      - name: relative_humidity_pct
+        description: "Humidité relative de l'air en pourcentage."
+
+      - name: precipitation_mm
+        description: "Précipitations totales en millimètres."
+
+      - name: rain_mm
+        description: "Quantité de pluie en millimètres."
+
+      - name: showers_mm
+        description: "Quantité d'averses en millimètres."
+
+      - name: snowfall_cm
+        description: "Quantité de neige en centimètres."
+
+      - name: weather_code
+        description: "Code météo provenant de l'API Open-Meteo."
+
+      - name: cloud_cover_pct
+        description: "Couverture nuageuse totale en pourcentage."
+
+      - name: cloud_cover_low_pct
+        description: "Couverture nuageuse basse en pourcentage."
+
+      - name: cloud_cover_mid_pct
+        description: "Couverture nuageuse moyenne en pourcentage."
+
+      - name: cloud_cover_high_pct
+        description: "Couverture nuageuse haute en pourcentage."
+
+      - name: wind_speed_kmh
+        description: "Vitesse du vent en kilomètres par heure."
+
+      - name: wind_direction_deg
+        description: "Direction du vent en degrés."
+
+      - name: wind_gusts_kmh
+        description: "Rafales de vent en kilomètres par heure."
+
+      - name: pressure_msl_hpa
+        description: "Pression atmosphérique au niveau de la mer en hPa."
+
+      - name: surface_pressure_hpa
+        description: "Pression atmosphérique à la surface en hPa."
+
+      - name: visibility_m
+        description: "Visibilité horizontale en mètres."
+
+      - name: wave_height_m
+        description: "Hauteur totale des vagues en mètres."
+        data_tests:
+          - not_null
+
+      - name: wave_direction_deg
+        description: "Direction des vagues en degrés."
+        data_tests:
+          - not_null
+
+      - name: wave_period_s
+        description: "Période des vagues en secondes."
+        data_tests:
+          - not_null
+
+      - name: wave_peak_period_s
+        description: "Période de pic des vagues en secondes."
+
+      - name: wind_wave_height_m
+        description: "Hauteur des vagues générées par le vent en mètres."
+
+      - name: wind_wave_direction_deg
+        description: "Direction des vagues générées par le vent en degrés."
+
+      - name: wind_wave_period_s
+        description: "Période des vagues générées par le vent en secondes."
+
+      - name: wind_wave_peak_period_s
+        description: "Période de pic des vagues générées par le vent en secondes."
+
+      - name: swell_height_m
+        description: "Hauteur du swell en mètres."
+        data_tests:
+          - not_null
+
+      - name: swell_direction_deg
+        description: "Direction du swell en degrés."
+        data_tests:
+          - not_null
+
+      - name: swell_period_s
+        description: "Période du swell en secondes."
+        data_tests:
+          - not_null
+
+      - name: swell_peak_period_s
+        description: "Période de pic du swell en secondes."
+
+      - name: sea_surface_temperature_c
+        description: "Température de surface de la mer en degrés Celsius."
+
+      - name: sea_level_height_msl
+        description: "Hauteur du niveau de la mer par rapport au niveau moyen de la mer."
+
+      - name: ocean_current_velocity_ms
+        description: "Vitesse du courant océanique en mètres par seconde."
+
+      - name: ocean_current_direction_deg
+        description: "Direction du courant océanique en degrés."

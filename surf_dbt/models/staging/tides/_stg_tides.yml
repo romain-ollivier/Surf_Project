@@ -1,0 +1,75 @@
+version: 2
+
+models:
+
+  - name: stg_tide_stations
+    description: "Référentiel des stations de marée associées aux spots de surf."
+
+    columns:
+
+      - name: tide_station_id
+        description: "Identifiant unique de la station de marée."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_id
+        description: "Identifiant du spot de surf associé à la station."
+        data_tests:
+          - not_null
+
+      - name: station_name
+        description: "Nom de la station de marée."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude de la station."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude de la station."
+        data_tests:
+          - not_null
+
+      - name: distance_to_spot_km
+        description: "Distance entre la station et le spot de surf en kilomètres."
+        data_tests:
+          - not_null
+  
+  - name: stg_open_waters_tides
+    description: "Observations horaires du niveau d'eau provenant des stations Open Waters."
+
+    columns:
+
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: tide_station_id
+        description: "Identifiant de la station de marée."
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: "Date et heure de l'observation du niveau d'eau, en UTC."
+        data_tests:
+          - not_null
+
+      - name: water_level_m
+        description: "Niveau d'eau observé en mètres."
+        data_tests:
+          - not_null
+
+      - name: datum
+        description: "Référentiel vertical utilisé pour mesurer le niveau d'eau."
+        data_tests:
+          - not_null
+
+      - name: units
+        description: "Unité de mesure du niveau d'eau."
+        data_tests:
+          - not_null

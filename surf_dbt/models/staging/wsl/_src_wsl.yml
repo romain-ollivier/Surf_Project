@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: wsl
+    description: "Données de performance issues des résultats officiels de la World Surf League."
+
+    database: surf_data
+    schema: raw
+
+    tables:
+      - name: wsl_performance
+        description: "Résultats individuels des surfeurs par heat et événement WSL."

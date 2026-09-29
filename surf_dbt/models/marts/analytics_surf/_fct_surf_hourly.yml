@@ -1,0 +1,122 @@
+version: 2
+
+models:
+
+  - name: fct_surf_hourly
+    description: >
+      Hourly surf forecast fact table at a grain of one row per surf spot
+      and observation timestamp. Combines physical surf conditions with
+      Wind, Swell, Tide and overall Surf Index scores for the current
+      7-day forecast window.
+
+    columns:
+
+      - name: spot_id
+        description: Unique identifier of the surf spot.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_surf_spots')
+              field: spot_id
+
+      - name: spot_name
+        description: Name of the surf spot.
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: UTC timestamp of the hourly forecast condition.
+        data_tests:
+          - not_null
+
+      # --------------------------------------------------
+      # Wind scoring
+      # --------------------------------------------------
+
+      - name: wind_speed_index
+        description: >
+          Wind speed suitability score ranging from 0 to 100.
+        data_tests:
+          - not_null
+
+      - name: wind_direction_index
+        description: >
+          Wind direction suitability score ranging from 0 to 100.
+        data_tests:
+          - not_null
+
+      - name: wind_index
+        description: >
+          Combined Wind Index based on wind direction and wind speed.
+        data_tests:
+          - not_null
+
+      # --------------------------------------------------
+      # Swell scoring
+      # --------------------------------------------------
+
+      - name: swell_height_index
+        description: >
+          Swell height suitability score ranging from 0 to 100.
+        data_tests:
+          - not_null
+
+      - name: swell_period_index
+        description: >
+          Swell period suitability score ranging from 0 to 100.
+        data_tests:
+          - not_null
+
+      - name: calculated_swell_direction_index
+        description: >
+          Swell direction suitability score based on preferred
+          primary and secondary swell direction windows.
+        data_tests:
+          - not_null
+
+      - name: size_index
+        description: >
+          Wave size suitability score ranging from 0 to 100.
+        data_tests:
+          - not_null
+
+      - name: swell_index
+        description: >
+          Combined Swell Index based on wave size, swell period
+          and swell direction.
+        data_tests:
+          - not_null
+
+      # --------------------------------------------------
+      # Tide scoring
+      # --------------------------------------------------
+
+      - name: tide_index
+        description: >
+          Tide suitability score ranging from 0 to 100.
+        data_tests:
+          - not_null
+
+      # --------------------------------------------------
+      # Final Surf Index
+      # --------------------------------------------------
+
+      - name: surf_index
+        description: >
+          Overall hourly Surf Index combining Swell, Wind and Tide
+          scores on a scale from 0 to 100.
+        data_tests:
+          - not_null
+
+      - name: surf_quality_band
+        description: >
+          Surf quality classification derived from the overall Surf Index.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - VERY_POOR
+                - POOR
+                - GOOD
+                - VERY_GOOD
+                - OPTIMAL

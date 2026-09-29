@@ -1,0 +1,46 @@
+version: 2
+
+models:
+  - name: dim_surf_spot_direction_preferences
+
+    columns:
+
+      - name: spot_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_surf_spots')
+                field: spot_id
+
+      - name: direction_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - SWELL
+                  - WIND
+
+      - name: direction_min_deg
+        tests:
+          - not_null
+          - valid_angle
+
+      - name: direction_max_deg
+        tests:
+          - not_null
+          - valid_angle
+
+      - name: preference_level
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - PRIMARY
+                  - SECONDARY
+
+      - name: source
+        tests:
+          - not_null

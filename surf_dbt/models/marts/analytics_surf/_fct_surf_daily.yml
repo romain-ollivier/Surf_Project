@@ -1,0 +1,111 @@
+version: 2
+
+models:
+
+  - name: fct_surf_daily
+    description: >
+      Daily surf forecast mart at a grain of one row per surf spot
+      and forecast date. Aggregates hourly surf conditions and scores
+      from fct_surf_hourly.
+
+    columns:
+
+      - name: spot_id
+        description: Unique identifier of the surf spot.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_surf_spots')
+              field: spot_id
+
+      - name: spot_name
+        description: Name of the surf spot.
+        data_tests:
+          - not_null
+
+      - name: forecast_date
+        description: Date of the surf forecast.
+        data_tests:
+          - not_null
+
+      - name: surf_index_avg
+        description: Average Surf Index across scored hours for the day.
+        data_tests:
+          - not_null
+
+      - name: surf_index_min
+        description: Minimum hourly Surf Index for the day.
+        data_tests:
+          - not_null
+
+      - name: surf_index_max
+        description: Maximum hourly Surf Index for the day.
+        data_tests:
+          - not_null
+
+      - name: scored_hours
+        description: Number of hourly observations contributing to the daily score.
+        data_tests:
+          - not_null
+
+      - name: optimal_hours
+        description: Number of hours classified as OPTIMAL.
+        data_tests:
+          - not_null
+
+      - name: very_good_hours
+        description: Number of hours classified as VERY_GOOD.
+        data_tests:
+          - not_null
+
+      - name: good_hours
+        description: Number of hours classified as GOOD.
+        data_tests:
+          - not_null
+
+      - name: poor_hours
+        description: Number of hours classified as POOR.
+        data_tests:
+          - not_null
+
+      - name: very_poor_hours
+        description: Number of hours classified as VERY_POOR.
+        data_tests:
+          - not_null
+
+      - name: best_hour
+        description: Timestamp of the hour with the highest Surf Index for the day.
+        data_tests:
+          - not_null
+
+      - name: best_surf_index
+        description: Highest hourly Surf Index for the day.
+        data_tests:
+          - not_null
+
+      - name: avg_wave_height_m
+        description: Average wave height for the day.
+
+      - name: avg_swell_height_m
+        description: Average swell height for the day.
+
+      - name: avg_swell_period_s
+        description: Average swell period for the day.
+
+      - name: avg_wind_speed_kmh
+        description: Average wind speed for the day.
+
+      - name: avg_tide_level_m
+        description: Average tide level for the day.
+
+      - name: surf_quality_band
+        description: Daily surf quality classification based on the average Surf Index.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - VERY_POOR
+                - POOR
+                - GOOD
+                - VERY_GOOD
+                - OPTIMAL

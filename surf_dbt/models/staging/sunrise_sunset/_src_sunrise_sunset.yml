@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: sunrise_sunset
+    description: "Données astronomiques et de luminosité provenant de Sunrise-Sunset.org."
+
+    database: surf_data
+    schema: raw
+
+    tables:
+      - name: sunrise_sunset
+        description: "Horaires quotidiens de lever, coucher du soleil et périodes de luminosité pour les spots de surf."

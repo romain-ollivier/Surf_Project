@@ -1,0 +1,28 @@
+version: 2
+
+models:
+
+  - name: stg_spots
+    description: "Référentiel des spots de surf préparé pour les modèles analytiques."
+
+    columns:
+      - name: spot_id
+        description: "Identifiant unique du spot."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_name
+        description: "Nom du spot."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude du spot."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude du spot."
+        data_tests:
+          - not_null

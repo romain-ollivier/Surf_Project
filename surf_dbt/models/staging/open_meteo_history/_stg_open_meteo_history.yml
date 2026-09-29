@@ -1,0 +1,67 @@
+version: 2
+
+models:
+
+  - name: stg_open_meteo_weather_history
+    description: "Historical hourly weather conditions for each surf spot."
+
+    columns:
+      - name: spot_id
+        tests:
+          - not_null
+
+      - name: observation_time
+        tests:
+          - not_null
+
+      - name: latitude
+        tests:
+          - not_null
+
+      - name: longitude
+        tests:
+          - not_null
+
+      - name: air_temperature_c
+        tests:
+          - not_null
+
+      - name: wind_speed_kmh
+        tests:
+          - not_null
+
+      - name: wind_direction_deg
+        tests:
+          - not_null
+
+  - name: stg_open_meteo_marine_history
+    description: "Historical hourly marine conditions for each surf spot."
+
+    columns:
+      - name: spot_id
+        tests:
+          - not_null
+
+      - name: observation_time
+        tests:
+          - not_null
+
+      - name: latitude
+        tests:
+          - not_null
+
+      - name: longitude
+        tests:
+          - not_null
+
+      - name: wave_height_m
+        tests:
+          - not_null
+
+      - name: wave_direction_deg
+        tests:
+          - not_null
+
+      - name: wave_period_s
+        tests:
+          - not_null

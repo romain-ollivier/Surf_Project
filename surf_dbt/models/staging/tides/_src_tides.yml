@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: tides
+    description: "Données de marée provenant d'Open Waters."
+
+    database: surf_data
+    schema: raw
+
+    tables:
+      - name: tide_stations
+        description: "Référentiel des stations de marée associées aux spots de surf."
+
+      - name: open_waters_tides
+        description: "Observations horaires du niveau d'eau provenant des stations Open Waters."

@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: copernicus
+    description: "Observations marines in-situ provenant de Copernicus Marine."
+    database: surf_data
+    schema: raw
+
+    tables:
+      - name: copernicus_insitu
+        description: "Observations marines issues des plateformes Copernicus suivies pour les spots de surf."

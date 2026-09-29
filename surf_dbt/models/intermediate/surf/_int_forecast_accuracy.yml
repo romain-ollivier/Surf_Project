@@ -1,0 +1,145 @@
+version: 2
+
+models:
+
+  - name: int_forecast_accuracy
+    description: >
+      Comparaison entre les prévisions météorologiques historiques
+      d'Open-Meteo et les conditions météorologiques réellement observées
+      pour chaque spot et chaque horizon de prévision.
+
+    columns:
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_spots')
+                field: spot_id
+
+      - name: spot_name
+        description: "Nom du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: country
+        description: "Pays du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: region
+        description: "Région ou zone géographique du spot."
+
+      - name: observation_time
+        description: >
+          Date et heure UTC correspondant aux conditions prévues
+          et observées.
+        data_tests:
+          - not_null
+
+      - name: forecast_horizon_days
+        description: >
+          Nombre de jours entre l'émission de la prévision et
+          l'échéance prévue.
+        data_tests:
+          - not_null
+
+      # =====================================================
+      # Forecast
+      # =====================================================
+
+      - name: forecast_air_temperature_c
+        description: "Température de l'air prévue en degrés Celsius."
+
+      - name: forecast_wind_speed_kmh
+        description: "Vitesse du vent prévue en km/h."
+
+      - name: forecast_wind_direction_deg
+        description: "Direction du vent prévue en degrés."
+
+      - name: forecast_wind_gusts_kmh
+        description: "Rafales de vent prévues en km/h."
+
+      - name: forecast_precipitation_mm
+        description: "Précipitations prévues en millimètres."
+
+      - name: forecast_cloud_cover_pct
+        description: "Couverture nuageuse prévue en pourcentage."
+
+      # =====================================================
+      # Actual observations
+      # =====================================================
+
+      - name: actual_air_temperature_c
+        description: "Température de l'air observée en degrés Celsius."
+
+      - name: actual_wind_speed_kmh
+        description: "Vitesse du vent observée en km/h."
+
+      - name: actual_wind_direction_deg
+        description: "Direction du vent observée en degrés."
+
+      - name: actual_wind_gusts_kmh
+        description: "Rafales de vent observées en km/h."
+
+      - name: actual_precipitation_mm
+        description: "Précipitations observées en millimètres."
+
+      - name: actual_cloud_cover_pct
+        description: "Couverture nuageuse observée en pourcentage."
+
+      # =====================================================
+      # Forecast errors
+      # =====================================================
+
+      - name: temperature_error_c
+        description: >
+          Erreur signée entre la température prévue et la température observée,
+          en degrés Celsius.
+
+      - name: temperature_absolute_error_c
+        description: >
+          Valeur absolue de l'erreur de température,
+          en degrés Celsius.
+
+      - name: wind_speed_error_kmh
+        description: >
+          Erreur signée entre la vitesse du vent prévue et observée,
+          en km/h.
+
+      - name: wind_speed_absolute_error_kmh
+        description: >
+          Valeur absolue de l'erreur de vitesse du vent,
+          en km/h.
+
+      - name: wind_gusts_error_kmh
+        description: >
+          Erreur signée entre les rafales prévues et observées,
+          en km/h.
+
+      - name: wind_gusts_absolute_error_kmh
+        description: >
+          Valeur absolue de l'erreur de rafales,
+          en km/h.
+
+      - name: precipitation_error_mm
+        description: >
+          Erreur signée entre les précipitations prévues et observées,
+          en millimètres.
+
+      - name: precipitation_absolute_error_mm
+        description: >
+          Valeur absolue de l'erreur de précipitations,
+          en millimètres.
+
+      - name: cloud_cover_error_pct
+        description: >
+          Erreur signée entre la couverture nuageuse prévue et observée,
+          en points de pourcentage.
+
+      - name: cloud_cover_absolute_error_pct
+        description: >
+          Valeur absolue de l'erreur de couverture nuageuse,
+          en points de pourcentage.

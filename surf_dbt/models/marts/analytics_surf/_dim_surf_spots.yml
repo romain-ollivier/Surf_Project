@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: dim_surf_spots
+
+    columns:
+
+      - name: spot_id
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_spots')
+                field: spot_id
+
+      - name: spot_name
+        tests:
+          - not_null
+
+      - name: break_type
+        tests:
+          - not_null
+
+      - name: break_orientation_deg
+        tests:
+          - not_null
+          - valid_angle
+
+      - name: tide_preference
+        tests:
+          - not_null
+
+      - name: difficulty
+        tests:
+          - not_null
+
+      - name: source
+        tests:
+          - not_null

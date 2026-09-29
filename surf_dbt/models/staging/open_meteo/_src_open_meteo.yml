@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: open_meteo
+    description: "Données météorologiques et marines provenant des APIs Open-Meteo."
+    database: surf_data
+    schema: raw
+
+    tables:
+      - name: open_meteo_weather
+        description: "Prévisions météorologiques horaires récupérées depuis l'API Open-Meteo Weather."
+
+      - name: open_meteo_marine
+        description: "Prévisions marines horaires récupérées depuis l'API Open-Meteo Marine."
+    
+      - name: open_meteo_forecast_history
+        description: "Historique des prévisions météorologiques horaires récupérées depuis l'API Open-Meteo."

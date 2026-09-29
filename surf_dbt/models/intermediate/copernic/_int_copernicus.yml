@@ -1,0 +1,71 @@
+version: 2
+
+models:
+
+  - name: int_copernicus_wave_conditions
+    description: "Observations marines Copernicus regroupées à une granularité de 1 spot × 1 timestamp."
+
+    columns:
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: platform_id
+        description: "Identifiant de la plateforme Copernicus."
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: "Date et heure de l'observation en UTC."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude de la plateforme Copernicus."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude de la plateforme Copernicus."
+        data_tests:
+          - not_null
+
+      - name: significant_wave_height_m
+        description: "Hauteur significative des vagues Hm0, lorsque la variable VHM0 est disponible."
+
+      - name: peak_wave_period_s
+        description: "Période de pic des vagues Tp, lorsque la variable VTPK est disponible."
+
+      - name: mean_wave_direction_deg
+        description: "Direction moyenne des vagues, lorsque la variable VMDR est disponible."
+
+      - name: mean_wave_period_s
+        description: "Période moyenne spectrale Tm02, lorsque la variable VTM02 est disponible."
+
+      - name: sea_surface_temperature_c
+        description: "Température de surface de la mer, lorsque la variable TEMP est disponible."
+
+      - name: average_upper_third_wave_height_m
+        description: "Hauteur moyenne des vagues du tiers supérieur, lorsque VAVH est disponible."
+
+      - name: average_upper_third_wave_period_s
+        description: "Période moyenne des vagues du tiers supérieur, lorsque VAVT est disponible."
+
+      - name: maximum_wave_height_zero_crossing_m
+        description: "Hauteur maximale des vagues selon la méthode zero-crossing, lorsque VZMX est disponible."
+
+      - name: estimated_maximum_wave_height_m
+        description: "Hauteur maximale estimée des vagues, lorsque VEMH est disponible."
+
+      - name: generic_significant_wave_height_m
+        description: "Hauteur significative générique fournie par Copernicus, lorsque VGHS est disponible."
+
+      - name: generic_average_wave_period_s
+        description: "Période moyenne générique fournie par Copernicus, lorsque VGTA est disponible."
+
+      - name: variable_count
+        description: "Nombre de variables Copernicus disponibles pour le spot et le timestamp."
+        data_tests:
+          - not_null

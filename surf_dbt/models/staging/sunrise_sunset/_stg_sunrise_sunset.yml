@@ -1,0 +1,74 @@
+version: 2
+
+models:
+
+  - name: stg_sunrise_sunset
+    description: "Données quotidiennes de lever, coucher du soleil et périodes de luminosité pour les spots de surf."
+
+    columns:
+
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: observation_date
+        description: "Date civile correspondant aux horaires astronomiques."
+        data_tests:
+          - not_null
+
+      - name: timezone
+        description: "Fuseau horaire local du spot."
+        data_tests:
+          - not_null
+
+      - name: utc_offset
+        description: "Décalage du fuseau horaire par rapport à UTC."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude du spot."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude du spot."
+        data_tests:
+          - not_null
+
+      - name: sunrise
+        description: "Heure du lever du soleil."
+
+      - name: sunset
+        description: "Heure du coucher du soleil."
+
+      - name: dawn
+        description: "Début de l'aube."
+
+      - name: dusk
+        description: "Fin du crépuscule."
+
+      - name: first_light
+        description: "Première luminosité du jour."
+
+      - name: last_light
+        description: "Dernière luminosité du jour."
+
+      - name: civil_twilight_begin
+        description: "Début du crépuscule civil."
+
+      - name: civil_twilight_end
+        description: "Fin du crépuscule civil."
+
+      - name: day_length_seconds
+        description: "Durée du jour en secondes."
+
+      - name: ingested_at
+        description: "Date et heure d'ingestion dans la base RAW."

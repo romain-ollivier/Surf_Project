@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: open_meteo_history
+    schema: raw
+    description: "Open-Meteo raw data"
+
+    tables:
+
+      - name: open_meteo_weather
+        description: "Current Open-Meteo weather data"
+
+      - name: open_meteo_marine
+        description: "Current Open-Meteo marine data"
+
+      - name: open_meteo_forecast_history
+        description: "Historical forecast snapshots from Open-Meteo"
+
+      - name: open_meteo_weather_history
+        description: "Historical weather observations from Open-Meteo Archive API"
+
+      - name: open_meteo_marine_history
+        description: "Historical marine conditions from Open-Meteo Marine API"

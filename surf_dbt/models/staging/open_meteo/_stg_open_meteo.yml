@@ -1,0 +1,98 @@
+models:
+
+  - name: stg_open_meteo_weather
+    description: "Données météorologiques horaires nettoyées et préparées pour les transformations analytiques."
+
+    columns:
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: "Date et heure de l'observation/prévision en UTC."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude du spot."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude du spot."
+        data_tests:
+          - not_null
+
+
+  - name: stg_open_meteo_marine
+    description: "Données marines horaires nettoyées et préparées pour les transformations analytiques."
+
+    columns:
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: "Date et heure de l'observation/prévision en UTC."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude du spot."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude du spot."
+        data_tests:
+          - not_null
+  
+
+  - name: stg_open_meteo_forecast
+    description: "Historique des prévisions météorologiques horaires nettoyées et préparées pour l'analyse de la précision des prévisions."
+
+    columns:
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_id
+        description: "Identifiant du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: observation_time
+        description: "Date et heure auxquelles les conditions prévues s'appliquent, en UTC."
+        data_tests:
+          - not_null
+
+      - name: forecast_horizon_days
+        description: "Horizon de prévision en nombre de jours."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude du spot."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude du spot."
+        data_tests:
+          - not_null

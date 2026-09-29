@@ -1,0 +1,65 @@
+version: 2
+
+models:
+
+  - name: stg_wsl_performance
+    description: "Résultats individuels des surfeurs par heat et événement WSL."
+
+    columns:
+
+      - name: id
+        description: "Identifiant technique de la ligne RAW."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: event_id
+        description: "Identifiant de l'événement WSL."
+        data_tests:
+          - not_null
+
+      - name: event_name
+        description: "Nom de l'événement WSL."
+        data_tests:
+          - not_null
+
+      - name: spot_id
+        description: "Identifiant du spot de surf associé à l'événement."
+
+      - name: tour
+        description: "Circuit ou catégorie du tour WSL."
+
+      - name: round
+        description: "Tour de compétition du heat."
+
+      - name: heat_number
+        description: "Numéro du heat."
+
+      - name: surfer_id
+        description: "Identifiant du surfeur."
+
+      - name: surfer_name
+        description: "Nom du surfeur."
+        data_tests:
+          - not_null
+
+      - name: surfer_country
+        description: "Pays représenté par le surfeur."
+
+      - name: heat_score
+        description: "Score total obtenu par le surfeur dans le heat."
+
+      - name: waves_count
+        description: "Nombre de vagues prises par le surfeur pendant le heat."
+
+      - name: best_wave_1
+        description: "Score de la meilleure vague du surfeur."
+
+      - name: best_wave_2
+        description: "Score de la deuxième meilleure vague du surfeur."
+
+      - name: event_date
+        description: "Date de l'événement lorsqu'elle est disponible dans la source."
+
+      - name: ingested_at
+        description: "Date et heure d'ingestion dans la base RAW."
