@@ -55,7 +55,7 @@ def get_wsl_data(event):
     }
 
 
-def transform_wsl_data(data, connection):
+def transform_wsl_data(data):
     """Transform WSL HTML data into RAW records."""
 
     event = data["event"]
@@ -63,7 +63,7 @@ def transform_wsl_data(data, connection):
 
     from .database import get_surf_spots
 
-    spots = get_surf_spots(connection)
+    spots = get_surf_spots()
 
     spot_id = next(
         (

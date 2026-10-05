@@ -79,7 +79,7 @@ def main():
         # 3. Retrieve surf spots
         # -----------------------------------------------------
 
-        spots = get_surf_spots(connection)
+        spots = get_surf_spots()
 
         print(f"{len(spots)} surf spots found.")
 
@@ -247,7 +247,6 @@ def main():
 
                 wsl_rows = transform_wsl_data(
                     wsl_data,
-                    connection,
                 )
 
                 insert_wsl_data(

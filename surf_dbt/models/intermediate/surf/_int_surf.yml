@@ -15,13 +15,18 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_spots')
+                to: ref('stg_surf_spots')
                 field: spot_id
 
               
 
       - name: spot_name
         description: "Nom du spot de surf."
+        data_tests:
+          - not_null
+
+      - name: timezone
+        description: "Fuseau horaire IANA du spot."
         data_tests:
           - not_null
 
@@ -35,6 +40,40 @@ models:
         description: "Date et heure de l'observation en UTC."
         data_tests:
           - not_null
+
+      - name: local_observation_time
+        description: "Heure civile de l'observation dans le fuseau du spot."
+        data_tests:
+          - not_null
+
+      - name: local_date
+        description: "Date civile locale du spot, dérivée de local_observation_time."
+        data_tests:
+          - not_null
+
+      - name: sunrise
+        description: "Instant sunrise source stocké comme timestamptz."
+
+      - name: sunset
+        description: "Instant sunset source stocké comme timestamptz."
+
+      - name: first_light
+        description: "Instant first_light source stocké comme timestamptz."
+
+      - name: last_light
+        description: "Instant last_light source stocké comme timestamptz."
+
+      - name: sunrise_local
+        description: "Heure civile du lever du soleil dans le fuseau du spot."
+
+      - name: sunset_local
+        description: "Heure civile du coucher du soleil dans le fuseau du spot."
+
+      - name: first_light_local
+        description: "Heure civile de first_light dans le fuseau du spot."
+
+      - name: last_light_local
+        description: "Heure civile de last_light dans le fuseau du spot."
 
       - name: air_temperature_c
         description: "Température de l'air en degrés Celsius."

@@ -1,26 +1,15 @@
 import os
+import logging
 from datetime import datetime
 
 import copernicusmarine
 from dotenv import load_dotenv
 
-from src.ingestion.database import get_db_connection
-
-
-# Load environment variables
-load_dotenv()
-
-COPERNICUS_USERNAME = os.getenv("COPERNICUS_USERNAME")
-COPERNICUS_PASSWORD = os.getenv("COPERNICUS_PASSWORD")
-
-if not COPERNICUS_USERNAME or not COPERNICUS_PASSWORD:
-    raise ValueError(
-        "COPERNICUS_USERNAME and COPERNICUS_PASSWORD "
-        "must be defined in the .env file."
-    )
+from src.ingestion.database import get_db_connection, get_surf_spots
 
 
 DATASET_ID = "cmems_obs-ins_glo_phybgcwav_mynrt_na_irr"
+logger = logging.getLogger(__name__)
 
 
 STATIONS = {
@@ -60,17 +49,8 @@ STATIONS = {
 }
 
 
-def get_spot_ids(connection):
-    query = """
-        SELECT spot_id, spot_name
-        FROM raw.surf_spots
-    """
-
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        rows = cursor.fetchall()
-
-    return {row[1]: row[0] for row in rows}
+def get_spot_ids():
+    return {spot[1]: spot[0] for spot in get_surf_spots()}
 
 
 def get_copernicus_data(
@@ -79,14 +59,24 @@ def get_copernicus_data(
     start_datetime,
     end_datetime,
 ):
+    load_dotenv()
+    username = os.getenv("COPERNICUS_USERNAME")
+    password = os.getenv("COPERNICUS_PASSWORD")
+
+    if not username or not password:
+        raise ValueError(
+            "COPERNICUS_USERNAME and COPERNICUS_PASSWORD "
+            "must be configured before Copernicus ingestion."
+        )
+
     return copernicusmarine.read_dataframe(
         dataset_id=DATASET_ID,
         platform_ids=[platform_id],
         variables=variables,
         start_datetime=start_datetime,
         end_datetime=end_datetime,
-        username=COPERNICUS_USERNAME,
-        password=COPERNICUS_PASSWORD,
+        username=username,
+        password=password,
         disable_progress_bar=False,
     )
 
@@ -160,59 +150,77 @@ def insert_data(connection, spot_id, df):
     return len(rows)
 
 
-def run_copernicus_ingestion(start_datetime, end_datetime):
-
-    print("\nStarting Copernicus Marine ingestion...")
-
-    connection = get_db_connection()
+def run_copernicus_ingestion(
+    start_datetime,
+    end_datetime,
+    connection=None,
+):
+    owns_connection = connection is None
+    if owns_connection:
+        connection = get_db_connection()
 
     try:
-
-        spot_ids = get_spot_ids(connection)
-
+        spot_ids = get_spot_ids()
         total_rows = 0
+        failures = []
 
         for platform_id, config in STATIONS.items():
-
             spot_name = config["spot_name"]
             variables = config["variables"]
 
-            print(f"\nProcessing {spot_name}...")
-            print(f"Platform: {platform_id}")
-            print(f"Variables: {', '.join(variables)}")
+            try:
+                data = get_copernicus_data(
+                    platform_id,
+                    variables,
+                    start_datetime,
+                    end_datetime,
+                )
 
-            df = get_copernicus_data(
-                platform_id,
-                variables,
-                start_datetime,
-                end_datetime,
+                if data.empty:
+                    logger.info(
+                        "copernicus ingestion found no data for spot=%s "
+                        "platform=%s",
+                        spot_name,
+                        platform_id,
+                    )
+                    continue
+
+                spot_id = spot_ids[spot_name]
+                rows_inserted = insert_data(connection, spot_id, data)
+                total_rows += rows_inserted
+                logger.info(
+                    "copernicus ingestion completed for spot=%s "
+                    "platform=%s rows_inserted=%d",
+                    spot_name,
+                    platform_id,
+                    rows_inserted,
+                )
+            except Exception as error:
+                try:
+                    connection.rollback()
+                except Exception:
+                    logger.exception(
+                        "copernicus rollback failed for spot=%s",
+                        spot_name,
+                    )
+                failures.append(
+                    f"{spot_name} ({platform_id}): "
+                    f"{type(error).__name__}: {error}"
+                )
+                logger.exception(
+                    "copernicus ingestion failed for spot=%s platform=%s",
+                    spot_name,
+                    platform_id,
+                )
+
+        if failures:
+            raise RuntimeError(
+                "Copernicus ingestion failed for "
+                f"{len(failures)} platform(s): {'; '.join(failures)}"
             )
 
-            if df.empty:
-                print(f"{spot_name}: no data found.")
-                continue
-
-            spot_id = spot_ids[spot_name]
-
-            rows_inserted = insert_data(
-                connection,
-                spot_id,
-                df,
-            )
-
-            total_rows += rows_inserted
-
-            print(
-                f"{spot_name}: "
-                f"{rows_inserted} Copernicus observations loaded."
-            )
-
-        print(
-            f"\nCopernicus ingestion completed. "
-            f"{total_rows} observations processed."
-        )
+        return total_rows
 
     finally:
-
-        connection.close()
-        print("Database connection closed.")
+        if owns_connection:
+            connection.close()

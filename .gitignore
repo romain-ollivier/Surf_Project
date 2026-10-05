@@ -1,20 +1,56 @@
-# Environnement virtuel
+# --- Secrets : jamais versionnés ---
+# Variables d'environnement (le modèle .env.example reste versionné)
+.env
+.env.*
+!.env.example
+
+# Clés privées, certificats, paires de clés EC2/SSH
+*.pem
+*.key
+*.ppk
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Credentials cloud / Streamlit
+.aws/
+.streamlit/secrets.toml
+
+# --- Environnements virtuels / Python ---
 .venv/
 venv/
-
-# Variables d'environnement
-.env
-
-# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
 
-# IDE
+# --- IDE / système ---
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
-# Journaux locaux
+# --- Journaux ---
 /logs/
+*.log
+
+# --- Airflow : artefacts générés localement ---
+airflow/airflow.cfg
+airflow/airflow.db
+airflow/webserver_config.py
+*.pid
+
+# --- PostgreSQL : données/dumps locaux ---
+pgdata/
+postgres-data/
+*.dump
+
+# --- Docker : surcharges locales éventuelles ---
+docker-compose.override.yml

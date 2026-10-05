@@ -5,6 +5,6 @@ SELECT
     region,
     latitude,
     longitude,
-    ingested_at
+    timezone
 
-FROM {{ source('surf', 'surf_spots') }}
+FROM {{ ref('surf_spots') }}

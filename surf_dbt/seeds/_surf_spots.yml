@@ -1,0 +1,31 @@
+version: 2
+
+seeds:
+  - name: surf_spots
+    description: "Référentiel statique des spots de surf suivis par la plateforme."
+    columns:
+      - name: spot_id
+        description: "Identifiant stable du spot."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: spot_name
+        description: "Nom du spot."
+        data_tests:
+          - not_null
+
+      - name: latitude
+        description: "Latitude du spot en degrés décimaux."
+        data_tests:
+          - not_null
+
+      - name: longitude
+        description: "Longitude du spot en degrés décimaux."
+        data_tests:
+          - not_null
+
+      - name: timezone
+        description: "Fuseau horaire IANA du spot."
+        data_tests:
+          - not_null

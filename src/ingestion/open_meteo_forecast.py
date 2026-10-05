@@ -1,5 +1,7 @@
 """Ingestion de l'historique des prévisions Open-Meteo."""
 
+from datetime import datetime, timezone
+
 import requests
 
 from psycopg2.extras import execute_values
@@ -96,7 +98,7 @@ def transform_forecast_data(
             rows.append(
                 (
                     spot_id,
-                    observation_time,
+                    _parse_utc_timestamp(observation_time),
                     horizon,
                     data["latitude"],
                     data["longitude"],
@@ -110,6 +112,15 @@ def transform_forecast_data(
             )
 
     return rows
+
+
+def _parse_utc_timestamp(timestamp):
+    parsed_timestamp = datetime.fromisoformat(timestamp)
+
+    if parsed_timestamp.tzinfo is None:
+        return parsed_timestamp.replace(tzinfo=timezone.utc)
+
+    return parsed_timestamp.astimezone(timezone.utc)
 
 def insert_forecast_data(connection, rows):
     """Insère l'historique des prévisions dans PostgreSQL."""

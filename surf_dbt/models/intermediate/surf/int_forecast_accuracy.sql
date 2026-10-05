@@ -93,5 +93,5 @@ INNER JOIN {{ ref('int_surf_conditions') }} AS a
     ON f.spot_id = a.spot_id
     AND f.observation_time = a.observation_time
 
-INNER JOIN {{ ref('stg_spots') }} AS s
+INNER JOIN {{ ref('stg_surf_spots') }} AS s
     ON f.spot_id = s.spot_id

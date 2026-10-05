@@ -1,0 +1,7 @@
+apache-airflow-providers-standard==1.19.0
+beautifulsoup4==4.15.0
+copernicusmarine==2.4.1
+pandas==3.0.5
+psycopg2-binary==2.9.13
+python-dotenv==1.2.3
+requests==2.34.2

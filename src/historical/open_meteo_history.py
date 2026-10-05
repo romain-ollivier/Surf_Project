@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from src.ingestion.database import get_db_connection
+from src.ingestion.database import get_db_connection, get_surf_spots
 
 
 START_DATE = "2025-09-25"
@@ -249,20 +249,7 @@ def main():
     connection = get_db_connection()
 
     try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT
-                    spot_id,
-                    spot_name,
-                    latitude,
-                    longitude
-                FROM raw.surf_spots
-                ORDER BY spot_id;
-                """
-            )
-
-            spots = cursor.fetchall()
+        spots = get_surf_spots()
 
         print(f"{len(spots)} surf spots found.")
 

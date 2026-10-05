@@ -12,10 +12,10 @@ ranked_hours AS (
         ROW_NUMBER() OVER (
             PARTITION BY
                 spot_id,
-                observation_time::date
+                local_date
             ORDER BY
-                surf_index DESC,
-                observation_time ASC
+                surf_index DESC NULLS LAST,
+                local_observation_time ASC
         ) AS hour_rank
 
     FROM hourly
@@ -27,7 +27,9 @@ daily AS (
     SELECT
         spot_id,
         spot_name,
-        observation_time::date AS forecast_date,
+        timezone,
+        local_date,
+        local_date AS forecast_date,
 
         -- Surf Index
         AVG(surf_index) AS surf_index_avg,
@@ -35,7 +37,7 @@ daily AS (
         MAX(surf_index) AS surf_index_max,
 
         -- Number of scored hours
-        COUNT(*) AS scored_hours,
+        COUNT(surf_index) AS scored_hours,
 
         -- Quality bands
         COUNT(*) FILTER (
@@ -62,7 +64,7 @@ daily AS (
         MAX(
             CASE
                 WHEN hour_rank = 1
-                    THEN observation_time
+                    THEN local_observation_time
             END
         ) AS best_hour,
 
@@ -85,7 +87,8 @@ daily AS (
     GROUP BY
         spot_id,
         spot_name,
-        observation_time::date
+        timezone,
+        local_date
 
 ),
 

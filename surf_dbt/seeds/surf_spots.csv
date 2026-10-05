@@ -1,0 +1,6 @@
+spot_id,spot_name,country,region,latitude,longitude,timezone
+1,Hossegor,France,Landes,43.665100,-1.430200,Europe/Paris
+2,Uluwatu,Indonesia,Bali,-8.829100,115.084900,Asia/Makassar
+3,Bells Beach,Australia,Victoria,-38.369400,144.283600,Australia/Melbourne
+4,Cloudbreak,Fiji,Nadroga-Navosa,-17.876000,177.270000,Pacific/Fiji
+5,Pipeline,United States,Hawaii,21.664700,-158.053600,Pacific/Honolulu

@@ -5,8 +5,15 @@ models:
   - name: fct_surf_daily
     description: >
       Daily surf forecast mart at a grain of one row per surf spot
-      and forecast date. Aggregates hourly surf conditions and scores
-      from fct_surf_hourly.
+      and local calendar date. Aggregates hourly surf conditions and
+      scores from fct_surf_hourly.
+
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - spot_id
+              - local_date
 
     columns:
 
@@ -20,6 +27,16 @@ models:
 
       - name: spot_name
         description: Name of the surf spot.
+        data_tests:
+          - not_null
+
+      - name: timezone
+        description: IANA timezone of the surf spot.
+        data_tests:
+          - not_null
+
+      - name: local_date
+        description: Local calendar date represented by this daily row.
         data_tests:
           - not_null
 
@@ -74,7 +91,7 @@ models:
           - not_null
 
       - name: best_hour
-        description: Timestamp of the hour with the highest Surf Index for the day.
+        description: Local timestamp of the highest Surf Index hour for the day.
         data_tests:
           - not_null
 

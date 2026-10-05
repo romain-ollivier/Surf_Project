@@ -1,0 +1,17 @@
+.git
+.venv
+**/.venv
+venv
+**/venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+.env
+**/.env
+logs
+**/logs
+streamlit
+surf_dbt/target
+surf_dbt/dbt_packages
+surf_dbt/logs

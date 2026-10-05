@@ -1,6 +1,8 @@
 """Acces a la base PostgreSQL."""
 
+import csv
 import os
+from pathlib import Path
 
 import psycopg2
 from dotenv import load_dotenv
@@ -15,23 +17,32 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD"),
 }
 
+SURF_SPOTS_SEED = (
+    Path(__file__).resolve().parents[2]
+    / "surf_dbt"
+    / "seeds"
+    / "surf_spots.csv"
+)
+
 
 def get_db_connection():
     """Create and return a connection to PostgreSQL."""
     return psycopg2.connect(**DB_CONFIG)
 
 
-def get_surf_spots(connection):
-    """Retrieve all surf spots from the RAW database."""
-    query = """
-        SELECT
-            spot_id,
-            spot_name,
-            latitude,
-            longitude
-        FROM raw.surf_spots;
-    """
-
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        return cursor.fetchall()
+def get_surf_spots():
+    """Load all surf spots from the dbt seed CSV."""
+    with SURF_SPOTS_SEED.open(
+        mode="r",
+        newline="",
+        encoding="utf-8",
+    ) as seed_file:
+        return [
+            (
+                int(row["spot_id"]),
+                row["spot_name"],
+                float(row["latitude"]),
+                float(row["longitude"]),
+            )
+            for row in csv.DictReader(seed_file)
+        ]

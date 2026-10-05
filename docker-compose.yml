@@ -1,0 +1,94 @@
+name: surf-airflow-dev
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: surf-airflow-dev:3.3.2
+  env_file:
+    - .env
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/airflow/dags
+    AIRFLOW__CORE__FERNET_KEY: "${AIRFLOW_FERNET_KEY:?Set AIRFLOW_FERNET_KEY in .env}"
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "${AIRFLOW_ADMIN_USERNAME:-airflow}:admin"
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/auth/simple_auth_manager_passwords.json.generated
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://${AIRFLOW_META_DB_USER:-airflow}:${AIRFLOW_META_DB_PASSWORD:?Set AIRFLOW_META_DB_PASSWORD in .env}@airflow-metadata-db:5432/${AIRFLOW_META_DB_NAME:-airflow_meta}"
+    AIRFLOW__API__SECRET_KEY: "${AIRFLOW_API_SECRET_KEY:?Set AIRFLOW_API_SECRET_KEY in .env}"
+    AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET:?Set AIRFLOW_JWT_SECRET in .env}"
+    PYTHONPATH: /opt/airflow/project
+    DBT_PROFILES_DIR: /opt/airflow/dbt-profile
+    AIRFLOW_SURF_DB_HOST: "${AIRFLOW_SURF_DB_HOST:-host.docker.internal}"
+    DB_HOST: "${AIRFLOW_SURF_DB_HOST:-host.docker.internal}"
+    DB_PORT: "${DB_PORT:-5432}"
+    DB_NAME: "${DB_NAME:-surf_data}"
+    DB_USER: "${DB_USER:?Set DB_USER in .env}"
+    DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  volumes: &airflow-common-volumes
+    - ./airflow/dags:/opt/airflow/project/airflow/dags
+    - ./src:/opt/airflow/project/src
+    - ./surf_dbt:/opt/airflow/project/surf_dbt
+    - ./airflow/dbt-profiles.yml.example:/opt/airflow/dbt-profile/profiles.yml:ro
+    - airflow_logs:/opt/airflow/logs
+    - airflow_auth:/opt/airflow/auth
+
+services:
+  airflow-metadata-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: "${AIRFLOW_META_DB_NAME:-airflow_meta}"
+      POSTGRES_USER: "${AIRFLOW_META_DB_USER:-airflow}"
+      POSTGRES_PASSWORD: "${AIRFLOW_META_DB_PASSWORD:?Set AIRFLOW_META_DB_PASSWORD in .env}"
+    volumes:
+      - airflow_metadata_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    command: ["db", "migrate"]
+    restart: "no"
+    depends_on:
+      airflow-metadata-db:
+        condition: service_healthy
+
+  airflow-api-server:
+    <<: *airflow-common
+    command: ["api-server"]
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: ["scheduler"]
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: ["dag-processor"]
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow_auth:
+  airflow_logs:
+  airflow_metadata_data:

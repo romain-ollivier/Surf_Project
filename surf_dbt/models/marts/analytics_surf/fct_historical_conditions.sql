@@ -34,7 +34,7 @@ INNER JOIN {{ ref('stg_open_meteo_marine_history') }} AS m
     ON w.spot_id = m.spot_id
     AND w.observation_time = m.observation_time
 
-INNER JOIN {{ ref('stg_spots') }} AS s
+INNER JOIN {{ ref('stg_surf_spots') }} AS s
     ON w.spot_id = s.spot_id
 
 INNER JOIN {{ ref('surf_spot_characteristics') }} AS c

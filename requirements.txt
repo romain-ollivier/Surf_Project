@@ -4,3 +4,7 @@ requests==2.34.2
 beautifulsoup4==4.15.0
 copernicusmarine==2.4.1
 dbt-postgres==1.11.0
+streamlit
+pandas
+sqlalchemy
+plotly

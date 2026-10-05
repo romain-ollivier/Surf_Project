@@ -11,6 +11,6 @@ SELECT
     c.preferred_period_min_s,
     c.difficulty,
     c.source
-FROM {{ ref('stg_spots') }} AS s
+FROM {{ ref('stg_surf_spots') }} AS s
 INNER JOIN {{ ref('surf_spot_characteristics') }} AS c
     ON s.spot_id = c.spot_id

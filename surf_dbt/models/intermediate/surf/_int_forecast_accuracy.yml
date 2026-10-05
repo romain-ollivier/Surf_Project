@@ -16,7 +16,7 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_spots')
+                to: ref('stg_surf_spots')
                 field: spot_id
 
       - name: spot_name

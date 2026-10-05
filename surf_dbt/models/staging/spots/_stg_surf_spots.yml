@@ -1,10 +1,8 @@
 version: 2
 
 models:
-
-  - name: stg_spots
+  - name: stg_surf_spots
     description: "Référentiel des spots de surf préparé pour les modèles analytiques."
-
     columns:
       - name: spot_id
         description: "Identifiant unique du spot."
@@ -24,5 +22,10 @@ models:
 
       - name: longitude
         description: "Longitude du spot."
+        data_tests:
+          - not_null
+
+      - name: timezone
+        description: "Fuseau horaire IANA du spot."
         data_tests:
           - not_null

@@ -3,6 +3,7 @@ WITH base AS (
     SELECT
         s.spot_id,
         s.spot_name,
+        s.timezone,
         w.observation_time,
 
         -- Weather
@@ -38,7 +39,7 @@ WITH base AS (
         -- Ocean
         m.sea_surface_temperature_c
 
-    FROM {{ ref('stg_spots') }} AS s
+    FROM {{ ref('stg_surf_spots') }} AS s
 
     INNER JOIN {{ ref('surf_spot_characteristics') }} AS c
         ON s.spot_id = c.spot_id
@@ -186,6 +187,7 @@ swell_alignment AS (
     GROUP BY
         wc.spot_id,
         wc.spot_name,
+        wc.timezone,
         wc.observation_time,
         wc.air_temperature_c,
         wc.precipitation_mm,
@@ -277,42 +279,61 @@ daylight_features AS (
         last_light
 
     FROM {{ ref('stg_sunrise_sunset') }}
+),
+
+localized_conditions AS (
+
+    SELECT
+        sa.*,
+
+        sa.observation_time AT TIME ZONE sa.timezone
+            AS local_observation_time,
+
+        (
+            sa.observation_time AT TIME ZONE sa.timezone
+        )::date AS local_date,
+
+        -- Tide
+        t.water_level_m,
+        t.tide_rate_m_per_hour,
+        t.tide_phase,
+
+        -- Source values remain timestamptz instants; local values are wall time.
+        d.first_light,
+        d.sunrise,
+        d.sunset,
+        d.last_light,
+        d.first_light AT TIME ZONE sa.timezone AS first_light_local,
+        d.sunrise AT TIME ZONE sa.timezone AS sunrise_local,
+        d.sunset AT TIME ZONE sa.timezone AS sunset_local,
+        d.last_light AT TIME ZONE sa.timezone AS last_light_local
+
+    FROM swell_alignment AS sa
+
+    LEFT JOIN tide_classified AS t
+        ON sa.spot_id = t.spot_id
+        AND sa.observation_time = t.observation_time
+
+    LEFT JOIN daylight_features AS d
+        ON sa.spot_id = d.spot_id
+        AND (
+            sa.observation_time AT TIME ZONE sa.timezone
+        )::date = d.observation_date
 )
 
 SELECT
-    sa.*,
+    *,
 
-    -- Tide
-    t.water_level_m,
-    t.tide_rate_m_per_hour,
-    t.tide_phase,
+    COALESCE(
+        local_observation_time >= sunrise_local
+            AND local_observation_time <= sunset_local,
+        FALSE
+    ) AS is_daylight,
 
-    -- Daylight
-    d.first_light,
-    d.sunrise,
-    d.sunset,
-    d.last_light,
+    COALESCE(
+        local_observation_time >= first_light_local
+            AND local_observation_time <= last_light_local,
+        FALSE
+    ) AS is_surfable_light
 
-    CASE
-        WHEN sa.observation_time >= d.sunrise
-         AND sa.observation_time <= d.sunset
-            THEN TRUE
-        ELSE FALSE
-    END AS is_daylight,
-
-    CASE
-        WHEN sa.observation_time >= d.first_light
-         AND sa.observation_time <= d.last_light
-            THEN TRUE
-        ELSE FALSE
-    END AS is_surfable_light
-
-FROM swell_alignment AS sa
-
-LEFT JOIN tide_classified AS t
-    ON sa.spot_id = t.spot_id
-    AND sa.observation_time = t.observation_time
-
-LEFT JOIN daylight_features AS d
-    ON sa.spot_id = d.spot_id
-    AND sa.observation_time::date = d.observation_date
+FROM localized_conditions
