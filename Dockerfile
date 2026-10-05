@@ -20,6 +20,7 @@ COPY --chown=airflow:root airflow/dags/ /opt/airflow/project/airflow/dags/
 COPY --chown=airflow:root airflow/dbt-profiles.yml.example /opt/airflow/project/airflow/dbt-profiles.yml.example
 COPY --chown=airflow:root src/ /opt/airflow/project/src/
 COPY --chown=airflow:root surf_dbt/ /opt/airflow/project/surf_dbt/
+RUN chown -R airflow:root /opt/airflow/project/surf_dbt/
 
 ENV PYTHONPATH=/opt/airflow/project \
     DBT_PROFILES_DIR=/opt/airflow/dbt-profile \

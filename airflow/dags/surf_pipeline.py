@@ -35,8 +35,8 @@ from src.ingestion.airflow_jobs import (
 
 def _date_window_kwargs():
     """Return identical, retry-stable date templates for ingestion tasks."""
-    start_date = "{{ data_interval_start | ds }}"
-    end_date = "{{ macros.ds_add(data_interval_start | ds, 7) }}"
+    start_date = "{{ (dag_run.data_interval_start if dag_run.data_interval_start else dag_run.run_after) | ds }}"
+    end_date = "{{ macros.ds_add((dag_run.data_interval_start if dag_run.data_interval_start else dag_run.run_after) | ds, 7) }}"
     return {
         "start_date": start_date,
         "end_date": end_date,

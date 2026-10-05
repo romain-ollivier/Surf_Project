@@ -18,6 +18,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://${AIRFLOW_META_DB_USER:-airflow}:${AIRFLOW_META_DB_PASSWORD:?Set AIRFLOW_META_DB_PASSWORD in .env}@airflow-metadata-db:5432/${AIRFLOW_META_DB_NAME:-airflow_meta}"
     AIRFLOW__API__SECRET_KEY: "${AIRFLOW_API_SECRET_KEY:?Set AIRFLOW_API_SECRET_KEY in .env}"
     AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET:?Set AIRFLOW_JWT_SECRET in .env}"
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: "http://airflow-api-server:8080/execution/"
     PYTHONPATH: /opt/airflow/project
     DBT_PROFILES_DIR: /opt/airflow/dbt-profile
     # Container-side surf DB host. Default = local Windows PostgreSQL via
@@ -49,13 +50,13 @@ services:
   # - Local: optional mirror of the Windows PostgreSQL; not required, port 5432
   #   is never published to the host or the Internet.
   surf-db:
-    image: postgres:16
+    image: postgres:18
     environment:
       POSTGRES_DB: "${DB_NAME:-surf_data}"
       POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
       POSTGRES_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
     volumes:
-      - surf_postgres_data:/var/lib/postgresql/data
+      - surf_postgres_data:/var/lib/postgresql
     healthcheck:
       test:
         - CMD-SHELL
