@@ -20,6 +20,11 @@ x-airflow-common: &airflow-common
     AIRFLOW__API_AUTH__JWT_SECRET: "${AIRFLOW_JWT_SECRET:?Set AIRFLOW_JWT_SECRET in .env}"
     PYTHONPATH: /opt/airflow/project
     DBT_PROFILES_DIR: /opt/airflow/dbt-profile
+    # Container-side surf DB host. Default = local Windows PostgreSQL via
+    # host-gateway; set AIRFLOW_SURF_DB_HOST=surf-db in .env on AWS.
+    # NOTE: we deliberately do NOT reuse the host-side DB_HOST here, because
+    # local .env files set DB_HOST=localhost for Streamlit/scripts, and
+    # 'localhost' inside a container is NOT the Windows PostgreSQL.
     AIRFLOW_SURF_DB_HOST: "${AIRFLOW_SURF_DB_HOST:-host.docker.internal}"
     DB_HOST: "${AIRFLOW_SURF_DB_HOST:-host.docker.internal}"
     DB_PORT: "${DB_PORT:-5432}"
@@ -27,6 +32,8 @@ x-airflow-common: &airflow-common
     DB_USER: "${DB_USER:?Set DB_USER in .env}"
     DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
   extra_hosts:
+    # No-op on Linux/EC2 (surf-db resolves via the Docker network instead),
+    # required on Docker Desktop / WSL2 to reach the local Windows PostgreSQL.
     - "host.docker.internal:host-gateway"
   volumes: &airflow-common-volumes
     - ./airflow/dags:/opt/airflow/project/airflow/dags
@@ -37,6 +44,27 @@ x-airflow-common: &airflow-common
     - airflow_auth:/opt/airflow/auth
 
 services:
+  # Application database (surf_data).
+  # - AWS: used by Airflow/dbt/ingestion through the Docker network (DB_HOST=surf-db).
+  # - Local: optional mirror of the Windows PostgreSQL; not required, port 5432
+  #   is never published to the host or the Internet.
+  surf-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: "${DB_NAME:-surf_data}"
+      POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+    volumes:
+      - surf_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
   airflow-metadata-db:
     image: postgres:16
     environment:
@@ -61,6 +89,8 @@ services:
     depends_on:
       airflow-metadata-db:
         condition: service_healthy
+      surf-db:
+        condition: service_started
 
   airflow-api-server:
     <<: *airflow-common
@@ -71,6 +101,8 @@ services:
     depends_on:
       airflow-init:
         condition: service_completed_successfully
+      surf-db:
+        condition: service_healthy
 
   airflow-scheduler:
     <<: *airflow-common
@@ -79,6 +111,8 @@ services:
     depends_on:
       airflow-init:
         condition: service_completed_successfully
+      surf-db:
+        condition: service_healthy
 
   airflow-dag-processor:
     <<: *airflow-common
@@ -87,8 +121,11 @@ services:
     depends_on:
       airflow-init:
         condition: service_completed_successfully
+      surf-db:
+        condition: service_healthy
 
 volumes:
   airflow_auth:
   airflow_logs:
   airflow_metadata_data:
+  surf_postgres_data:
