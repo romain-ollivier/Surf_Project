@@ -9,7 +9,6 @@ load_dotenv()
 def get_engine():
     try:
         config = st.secrets["db"]
-        st.write("DEBUG DB HOST:", config.get("host", "NO_HOST"))
     except (FileNotFoundError, KeyError):
         config = None
     if config is not None:
