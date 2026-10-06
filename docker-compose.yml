@@ -51,6 +51,8 @@ services:
   #   is never published to the host or the Internet.
   surf-db:
     image: postgres:18
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: "${DB_NAME:-surf_data}"
       POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
