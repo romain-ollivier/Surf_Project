@@ -2,8 +2,7 @@
 
 The ingestion callables own their provider logic and database connections.
 All date-windowed tasks use the same UTC Airflow data-interval boundary, so a
-retry of a DAG run receives the same window. WSL ingestion is event-configured
-and therefore does not receive dates.
+retry of a DAG run receives the same window.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -23,13 +22,11 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from src.ingestion.airflow_jobs import (
-    ingest_copernicus,
     ingest_forecast,
     ingest_marine,
     ingest_sunrise_sunset,
     ingest_tides,
     ingest_weather,
-    ingest_wsl,
 )
 
 
@@ -52,7 +49,7 @@ default_args = {
 
 with DAG(
     dag_id="surf_pipeline",
-    description="Ingest surf forecast sources and build the dbt analytics project.",
+    description="Ingest core surf forecast sources and build the dbt analytics project.",
     doc_md=__doc__,
     default_args=default_args,
     start_date=datetime(2025, 1, 1, tzinfo=timezone.utc),
@@ -96,19 +93,6 @@ with DAG(
         doc_md="Resolve tide stations and load their observations for all spots.",
     )
 
-    ingest_wsl_task = PythonOperator(
-        task_id="ingest_wsl",
-        python_callable=ingest_wsl,
-        doc_md="Fetch and load every event configured in the WSL ingestion module.",
-    )
-
-    ingest_copernicus_task = PythonOperator(
-        task_id="ingest_copernicus",
-        python_callable=ingest_copernicus,
-        op_kwargs=_date_window_kwargs(),
-        doc_md="Fetch and load Copernicus observations for the shared run window.",
-    )
-
     dbt_build_task = BashOperator(
         task_id="dbt_build",
         bash_command=(
@@ -116,7 +100,7 @@ with DAG(
             f"{shlex.quote(str(DBT_PROJECT_DIR))}"
         ),
         doc_md=(
-            "Build the dbt project after every ingestion task succeeds. "
+            "Build the dbt project after every core ingestion task succeeds. "
             "The project path is resolved relative to this DAG file."
         ),
     )
@@ -127,7 +111,5 @@ with DAG(
         ingest_forecast_task,
         ingest_sunrise_sunset_task,
         ingest_tides_task,
-        ingest_wsl_task,
-        ingest_copernicus_task,
     ]
     ingestion_tasks >> dbt_build_task
