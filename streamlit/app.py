@@ -252,6 +252,23 @@ available_dates = sorted(
     .unique()
 )
 
+# Hide the final local day when the forecast window only covers part of it.
+# The first local day is intentionally kept, since UTC boundaries can make it
+# start on the previous calendar day for western timezones such as Honolulu.
+if available_dates:
+    last_date = available_dates[-1]
+    last_day_rows = spot_df[
+        spot_df["local_date"] == last_date
+    ]
+
+    if not last_day_rows.empty:
+        last_local_time = last_day_rows[
+            "local_observation_time"
+        ].max()
+
+        if last_local_time.hour < 23:
+            available_dates = available_dates[:-1]
+
 
 with col_date:
 
