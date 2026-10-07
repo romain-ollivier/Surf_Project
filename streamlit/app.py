@@ -204,7 +204,9 @@ if df.empty:
 st.title("🏄 Surf Forecast")
 
 st.caption(
-    "Hourly surf conditions based on weather, wave, swell and wind data."
+    "Live analytical layer of an end-to-end surf data platform. "
+    "Forecast data is ingested automatically, transformed with dbt and exposed here "
+    "as local, surfable-hour insights."
 )
 
 
@@ -355,7 +357,7 @@ with summary_col1:
 with summary_col2:
 
     st.metric(
-        "Overall Quality",
+        "Best Quality",
         quality_display(daily_quality)
     )
 
@@ -387,7 +389,8 @@ with summary_col4:
 st.markdown("## 🌊 Surf Conditions")
 
 st.caption(
-    f"Surfable daylight hours · {spot_timezone}"
+    f"Surfable daylight hours only · local timezone: {spot_timezone}. "
+    "All forecast timestamps are converted from UTC before display."
 )
 
 
@@ -453,12 +456,24 @@ st.plotly_chart(
     use_container_width=True
 )
 
+st.caption(
+    "Wave height represents the overall sea-state height, while swell height isolates "
+    "the more organized incoming swell component. Comparing both helps distinguish "
+    "clean swell energy from the broader wave field."
+)
+
 
 # ============================================================
 # SURF SCORE
 # ============================================================
 
 st.markdown("## 🏄 Surf Score")
+
+st.caption(
+    "The Surf Index is calculated upstream in dbt, not in the dashboard. "
+    "Each hourly score combines normalized swell, wind and tide components using "
+    "spot-specific parameters, then the daily score averages the surfable daylight hours."
+)
 
 score_col, chart_col, factors_col = st.columns([1, 1.5, 1])
 
@@ -531,10 +546,22 @@ with factors_col:
 
 st.markdown(
     "**Surf Index = 60% Swell + 25% Wind + 15% Tide**  "
-    "The Surf Index is a transparent 0–100 score designed to summarize "
-    "how suitable the forecast conditions are for surfing at this spot. "
-    "Each spot uses its own preferred swell and wind directions and spot-specific thresholds."
+    "The score is intentionally interpretable: each component can be traced back "
+    "to forecast variables and spot-specific thresholds rather than a black-box model."
 )
+
+with st.expander("How to read the Surf Index"):
+    st.write(
+        "Each hourly score is classified into a qualitative band. "
+        "Scores below 30 are Poor, 30–49 Fair, 50–69 Good and 70–84 Very Good. "
+        "Excellent conditions require a score of at least 85 together with minimum "
+        "quality levels for swell, wind and tide."
+    )
+    st.write(
+        "The Daily Surf Index shown above is the average of the hourly scores during "
+        "surfable daylight hours. Best Time, Best Surf Index and Best Quality refer "
+        "to the strongest individual hour of that day."
+    )
 
 
 swell_col, component_wind_col, tide_col = st.columns(3)
@@ -550,7 +577,9 @@ with swell_col:
     st.markdown("### 🌊 Swell")
     st.metric("Swell Index", f"{daily_swell_index:.0f} / 100")
     st.caption(
-        "Swell quality combines swell height, period and direction. "
+        "Swell quality combines height, period and direction. "
+        "Height measures size, period is a proxy for swell energy and organization, "
+        "and direction measures how well the swell approaches this specific spot. "
         "Swell Index = 50% height + 25% period + 25% direction."
     )
     st.caption(
@@ -564,9 +593,9 @@ with component_wind_col:
     st.markdown("### 💨 Wind")
     st.metric("Wind Index", f"{daily_wind_index:.0f} / 100")
     st.caption(
-        "Wind quality combines wind direction and wind speed. "
-        "Wind Index = 60% direction + 40% speed. "
-        "Poor direction and speed combinations can trigger a penalty."
+        "Wind quality combines direction and speed. Direction is evaluated relative "
+        "to the spot orientation, while stronger winds are penalized when they are "
+        "likely to degrade surface quality. Wind Index = 60% direction + 40% speed."
     )
 
 with tide_col:
@@ -581,8 +610,9 @@ with tide_col:
     )
     st.caption(f"Tide phase at best time: {tide_phase_display}.")
     st.caption(
-        "Tide suitability is currently represented using a simplified "
-        "spot-level rule. This is intentionally kept transparent in V1."
+        "Tide suitability is derived from the position within the local tidal cycle "
+        "and spot-specific preferences. The current V1 remains deliberately simplified "
+        "and transparent rather than attempting to model detailed bathymetry."
     )
 
 
@@ -649,10 +679,9 @@ with surf_col4:
 st.markdown("## 💨 Wind Conditions")
 
 st.caption(
-    "Wind quality depends on both wind direction and wind speed. A favorable "
-    "offshore direction can improve wave shape, while stronger winds can "
-    "deteriorate surface conditions. The resulting Wind Index contributes "
-    "25% to the overall Surf Index."
+    "Wind quality is evaluated relative to each spot: favorable offshore or cross-offshore "
+    "directions can improve wave shape, while unfavorable or stronger winds can reduce "
+    "surface quality. The resulting Wind Index contributes 25% to the Surf Index."
 )
 
 
@@ -774,22 +803,40 @@ method_data_col, method_scoring_col, method_engineering_col = st.columns(3)
 with method_data_col:
     st.markdown("### Data")
     st.caption(
-        "Hourly weather and marine forecast data are collected from Open-Meteo "
-        "and transformed through a PostgreSQL + dbt pipeline."
+        "Python ingestion jobs collect hourly weather, marine, daylight and tide data. "
+        "Raw source data is stored in PostgreSQL before transformation so ingestion and "
+        "analytics remain decoupled."
     )
 
 with method_scoring_col:
     st.markdown("### Scoring")
     st.caption(
-        "Surf conditions are evaluated using transparent, spot-specific rules "
-        "based on swell height, period, direction, wind and tide."
+        "dbt models standardize the source data, align local timezones and calculate "
+        "transparent spot-specific scores from swell height, period, direction, wind and tide."
     )
 
 with method_engineering_col:
     st.markdown("### Engineering")
     st.caption(
-        "The pipeline separates ingestion, storage, transformation and "
-        "presentation layers, making the analytical model reproducible and maintainable."
+        "Apache Airflow orchestrates the daily pipeline, dbt validates and builds the "
+        "analytics layer, and Streamlit reads the final PostgreSQL mart through a "
+        "read-only database user."
+    )
+
+with st.expander("Behind this dashboard — project architecture"):
+    st.write(
+        "The dashboard is the presentation layer of a larger data engineering project: "
+        "Airflow orchestrates daily ingestion, PostgreSQL stores RAW and ANALYTICS schemas, "
+        "and dbt manages transformations, lineage and automated data-quality checks."
+    )
+    st.write(
+        "The backend runs in Docker Compose on AWS EC2, while this Streamlit application "
+        "is deployed separately and accesses only the analytics schema through a restricted "
+        "read-only connection."
+    )
+    st.write(
+        "The goal is not only to display a surf forecast, but to demonstrate an end-to-end "
+        "data platform with reproducible ingestion, transformation, testing and consumption."
     )
 
 st.markdown("### Model limitations")
@@ -797,8 +844,9 @@ st.caption(
     "The Surf Index is an interpretable heuristic and should not be considered "
     "an exact prediction of surf quality. It does not currently model detailed "
     "bathymetry, wave refraction, surf spot selection, wave consistency or real-time "
-    "observations. These limitations are intentional: the objective is to provide "
-    "a transparent analytical model built on publicly available forecast data."
+    "observations. These limitations are intentional: the current version prioritizes "
+    "explainability, reproducibility and data-engineering quality over claiming an exact "
+    "prediction of real-world surf conditions."
 )
 
 
