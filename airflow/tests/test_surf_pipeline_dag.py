@@ -22,8 +22,6 @@ EXPECTED_INGESTION_TASKS = {
     "ingest_forecast",
     "ingest_sunrise_sunset",
     "ingest_tides",
-    "ingest_wsl",
-    "ingest_copernicus",
 }
 EXPECTED_TASKS = EXPECTED_INGESTION_TASKS | {"dbt_build"}
 DAG_FILE = Path(__file__).resolve().parents[1] / "dags" / "surf_pipeline.py"
@@ -249,7 +247,7 @@ class SurfPipelineDAGTests(unittest.TestCase):
         retry_wall_clock = datetime(2026, 10, 2, 12, tzinfo=timezone.utc)
 
         windows = []
-        for task_id in EXPECTED_INGESTION_TASKS - {"ingest_wsl"}:
+        for task_id in EXPECTED_INGESTION_TASKS:
             op_kwargs = self.dag.tasks[task_id].op_kwargs
             first_window = _render_window(
                 op_kwargs,
@@ -266,7 +264,6 @@ class SurfPipelineDAGTests(unittest.TestCase):
             windows.append(first_window)
 
         self.assertEqual(len(set(windows)), 1)
-        self.assertNotIn("start_date", self.dag.tasks["ingest_wsl"].op_kwargs)
 
     def test_dbt_waits_for_all_ingestions_after_failure(self):
         dbt_task = self.dag.tasks["dbt_build"]

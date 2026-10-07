@@ -15,14 +15,14 @@ The platform was designed to collect data from several external APIs and dataset
 It demonstrates:
 
 - **End-to-end pipeline** — ingestion, storage, transformation, data quality checks and consumption
-- **API integration** — seven source feeds handled by dedicated Python connectors
+- **API integration** — five operational data feeds, with additional experimental WSL and Copernicus connectors
 - **Orchestration** — a scheduled Airflow DAG with retries and overlap protection
 - **Data modeling** — layered dbt models (staging → intermediate → marts) with automated tests
 - **Cloud deployment** — Dockerized backend on AWS EC2, frontend on Streamlit Community Cloud
 - **Security** — least-privilege, read-only database access and externalized secrets
 - **Analytics** — a transparent, parameter-driven, spot-specific Surf Index
 
-The infrastructure was deliberately kept lightweight: the stack relies on free-tier and free-to-use solutions, so the project runs at no recurring infrastructure cost.
+The infrastructure was deliberately kept lightweight and designed around free-tier and free-to-use services to minimize operating costs.
 
 ## Architecture
 
@@ -62,10 +62,10 @@ Airflow orchestrates the pipeline but does not transform data: Python ingests, P
 | Open-Meteo Historical Forecast API | Archived weather forecasts | Forecast history and analysis |
 | Open Waters Tides API | Tide levels, high/low tide predictions | Tidal conditions |
 | Sunrise / sunset data | Local sunrise and sunset times | Surfable-hour filtering |
-| Copernicus Marine Service | Global in-situ oceanographic observations | Marine observation data |
-| World Surf League (WSL) | Events, heats, competition results | Surf event context (not forecast data) |
+| Copernicus Marine Service | Global in-situ oceanographic observations | Experimental marine observation source |
+| World Surf League (WSL) | Events, heats, competition results | Experimental surf event context source |
 
-Open-Meteo provides the main weather and marine forecast layer. Open Waters exposes tide predictions through an open API based on the open-source Neaps harmonic prediction engine. Copernicus Marine Service provides open oceanographic datasets.
+Open-Meteo provides the main weather and marine forecast layer. Open Waters exposes tide predictions through an open API based on the open-source Neaps harmonic prediction engine. Copernicus Marine and WSL connectors remain available in the repository for future analytical use, but they are kept outside the critical daily Airflow pipeline.
 
 Each source is handled by a dedicated Python module:
 
@@ -85,7 +85,7 @@ Airflow coordinates the ingestion jobs and ensures that the transformation runs 
 Scheduled Run → Parallel Ingestion Tasks → dbt build → Analytics Dataset
 ```
 
-Ingestion tasks cover weather, marine forecast, historical forecast, sunrise/sunset, tide, WSL event and Copernicus Marine data.
+Ingestion tasks cover weather, marine forecast, historical forecast, sunrise/sunset and tide data. Non-critical WSL and Copernicus sources are kept outside the daily DAG so temporary provider issues cannot block the production analytics refresh.
 
 **Reliability settings**
 
@@ -122,7 +122,7 @@ Marts are materialized as tables to give dashboard queries stable analytical dat
 
 ### Data Quality & Testing
 
-Automated dbt tests cover primary-key uniqueness, non-null critical fields, referential integrity, accepted values and model-level consistency. The dbt project currently runs with **213 models and tests passing**, with no errors or warnings.
+Automated dbt tests cover primary-key uniqueness, non-null critical fields, referential integrity, accepted values and model-level consistency. The latest `dbt build` completed successfully with **213 dbt checks and models passing**, with no errors or warnings.
 
 Because tests run as part of `dbt build`, data is validated before it reaches the dashboard.
 
@@ -215,7 +215,7 @@ The project was designed as a lightweight but complete data platform, prioritizi
 | Single Dockerized EC2 instance | Reproducible deployment without managed-service cost |
 | Streamlit hosted separately from the backend | Frontend isolated from the data platform; read-only access only |
 | Parameter-driven scoring instead of machine learning | Transparent, explainable and easy to calibrate |
-| Free or open-source technologies | No recurring infrastructure cost |
+| Free or open-source technologies | Minimize recurring infrastructure cost |
 
 **Reliability and maintainability** come from Airflow retries, date-windowed ingestion for reproducible runs, overlap prevention, persistent volumes, a layered architecture, containerized execution and dbt tests run before data is exposed to the dashboard.
 
