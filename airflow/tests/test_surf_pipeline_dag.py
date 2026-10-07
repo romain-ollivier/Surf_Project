@@ -146,10 +146,11 @@ def _render_window(op_kwargs, logical_date, wall_clock_time):
 
     run_start = logical_date.replace(tzinfo=timezone.utc)
     context = {
-        "data_interval_start": run_start,
-        "data_interval_end": run_start + timedelta(days=1),
+        "dag_run": SimpleNamespace(
+            data_interval_start=run_start,
+            run_after=wall_clock_time,
+        ),
         "macros": SimpleNamespace(ds_add=ds_add),
-        "wall_clock_time": wall_clock_time,
     }
     return tuple(
         environment.from_string(op_kwargs[key]).render(**context)
