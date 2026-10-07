@@ -6,8 +6,6 @@
 
 ### 🔗 [Live Demo — Streamlit Dashboard](https://surfproject-7lqwunii9pg4f4wvqeqyot.streamlit.app/)
 
-### 🛠️ [Technical Deep Dive — Implementation Decisions & Challenges](TECHNICAL_DETAILS.md)
-
 ![End-to-End Data Engineering Architecture: Python ingestion, Airflow orchestration, PostgreSQL RAW and ANALYTICS, dbt transformations, Streamlit dashboard, deployed with Docker on AWS EC2](Surf_Data_TA-1.png)
 
 ## Overview
