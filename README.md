@@ -2,11 +2,11 @@
 
 > A production-oriented data platform that ingests, stores, transforms and analyzes multi-source marine and weather data, using **surf forecasting** as the use case.
 
-**Stack:** Python · Apache Airflow · PostgreSQL · dbt · Docker Compose · AWS EC2 · Streamlit
+**Stack:** Python · Apache Airflow · PostgreSQL · dbt · Docker Compose · AWS EC2 · Streamlit · Caddy
 
 ### 🔗 [Live Demo — Streamlit Dashboard](https://surf-project.duckdns.org/)
 
-![End-to-End Data Engineering Architecture: Python ingestion, Airflow orchestration, PostgreSQL RAW and ANALYTICS, dbt transformations, Streamlit dashboard, deployed with Docker on AWS EC2](Surf_Data_TA-1.png)
+![End-to-End Data Engineering Architecture: Python ingestion, Airflow orchestration, PostgreSQL RAW and ANALYTICS, dbt transformations, Streamlit dashboard and Caddy HTTPS reverse proxy, deployed with Docker on AWS EC2](Surf_Data_TA-1.png)
 
 ## Overview
 
@@ -18,11 +18,11 @@ It demonstrates:
 - **API integration** — five operational data feeds, with additional experimental WSL and Copernicus connectors
 - **Orchestration** — a scheduled Airflow DAG with retries and overlap protection
 - **Data modeling** — layered dbt models (staging → intermediate → marts) with automated tests
-- **Cloud deployment** — Dockerized backend on AWS EC2, frontend on Streamlit Community Cloud
+- **Cloud deployment** — Data pipeline and Streamlit dashboard on AWS EC2, with HTTPS served by Caddy
 - **Security** — least-privilege, read-only database access and externalized secrets
 - **Analytics** — a transparent, parameter-driven, spot-specific Surf Index
 
-The infrastructure was deliberately kept lightweight and designed around free-tier and free-to-use services to minimize operating costs.
+The infrastructure is deliberately kept lightweight, using a single EC2 instance and open-source tools to limit operating costs.
 
 ## Architecture
 
@@ -47,9 +47,10 @@ Streamlit
 | Storage | PostgreSQL 18 | `RAW` and `ANALYTICS` schemas (surf data) |
 | Transformation | dbt | Staging, intermediate and mart models, plus tests |
 | Application | Streamlit | User-facing analytics layer |
-| Runtime | Docker Compose on AWS EC2 | Containerized backend (Airflow, PostgreSQL, dbt) |
+| Runtime | Docker Compose on AWS EC2 | Airflow, PostgreSQL, dbt environment, Streamlit and Caddy |
 | Airflow metadata | PostgreSQL 16 | Separate database for Airflow state |
-| Hosting | Streamlit Community Cloud | Frontend, connected to `ANALYTICS` through a read-only user |
+| Web access | Caddy | HTTPS termination, automatic certificates and reverse proxy to Streamlit |
+| DNS | DuckDNS | Free subdomain pointing to the EC2 public IPv4 address |
 
 Airflow orchestrates the pipeline but does not transform data: Python ingests, PostgreSQL stores, dbt transforms and Streamlit presents. This separation makes each layer easier to maintain, replace or extend.
 
@@ -180,28 +181,63 @@ The dashboard allows users to:
 - explore wave, swell and wind conditions
 - visualize the hourly Surf Index and see how swell, wind and tide contribute to it
 
-Only surfable daylight hours are shown as primary forecast results, using each spot's local timezone. The application is hosted on Streamlit Community Cloud and covers several spots around the world.
+Only surfable daylight hours are shown as primary forecast results, using each spot's local timezone. The application runs in its own Docker container on EC2 and is available over HTTPS at [surf-project.duckdns.org](https://surf-project.duckdns.org/). It covers several spots around the world.
 
 ## Deployment & Infrastructure
 
-The backend runs on a single **AWS EC2** instance in `eu-west-3` (Paris), managed with **Docker Compose**:
+The platform runs on a single **AWS EC2 m7i-flex.large** instance (2 vCPU, 8 GiB RAM) in `eu-west-3` (Paris), managed with **Docker Compose**:
 
 - Apache Airflow — pipeline orchestration
 - PostgreSQL 18 — surf data (`RAW` and `ANALYTICS`)
 - PostgreSQL 16 — Airflow metadata
-- dbt — transformation environment
+- dbt — transformation environment within the Airflow image
+- Streamlit — dashboard in a separate application container
+- Caddy — public HTTPS reverse proxy
 
 Persistent Docker volumes preserve PostgreSQL data across container restarts and deployments.
 
-The Streamlit application is deployed separately on Streamlit Community Cloud and connects to the AWS-hosted `ANALYTICS` layer through a restricted read-only connection. This demonstrates a complete cloud deployment without unnecessary managed services or cost.
+Streamlit connects directly to `surf-db:5432` over the Docker network using its dedicated read-only database user. The dashboard stays running while the EC2 instance and its containers are running, without an inactivity-based hosting sleep policy. Streamlit and Caddy use `restart: unless-stopped` to recover after process failures or Docker restarts unless explicitly stopped.
+
+### HTTPS with Caddy
+
+Caddy is the public entry point for [surf-project.duckdns.org](https://surf-project.duckdns.org/). It receives browser requests on ports 80 and 443, redirects HTTP to HTTPS, and forwards application traffic, including WebSocket connections, to `streamlit:8501` on the Docker network. Streamlit's port 8501 is not published on the EC2 host.
+
+Caddy automatically obtains and renews the TLS certificate through ACME (the initial certificate was issued by Let's Encrypt). Its `caddy_data` and `caddy_config` volumes persist certificate and configuration state across container recreation. The reverse proxy configuration is kept in `deployment/Caddyfile`.
+
+DuckDNS provides the free subdomain and maps it to the EC2 public IPv4 address. If that address changes after an instance stop/start, the DuckDNS record must be updated unless a stable address or automatic DNS update is configured.
+
+### Deployment files and commands
+
+`docker-compose.yml` defines the data platform. `docker-compose.web.yml` adds Streamlit and Caddy; `streamlit/Dockerfile` builds the dashboard image with only its application dependencies.
+
+Before starting the web services, create `deployment/streamlit-secrets.toml` locally on the server with the read-only database credentials and `host = "surf-db"`. This file is excluded from Git, protected with file permissions, and mounted read-only at `/app/.streamlit/secrets.toml`. The backend must already be running and PostgreSQL healthy for the web-only deployment command below.
+
+Validate the combined configuration:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.web.yml config --quiet
+```
+
+Build or update the web services without recreating the backend:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.web.yml up -d --build --no-deps streamlit caddy
+```
+
+Inspect application and proxy logs:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.web.yml logs --tail=80 streamlit caddy
+```
 
 ## Security
 
 The security model is simple and based on least privilege:
 
-- AWS Security Groups restrict access to the required ports
+- AWS Security Groups allow public HTTP/HTTPS on ports 80/443; administration and database access should remain restricted
 - Streamlit uses a dedicated PostgreSQL user with read-only access to the `ANALYTICS` schema only
-- Database credentials are kept outside the Git repository; Streamlit credentials are managed through Streamlit Community Cloud secrets
+- Database credentials are kept outside the Git repository; Streamlit secrets are mounted read-only from a protected server-side TOML file
+- Caddy terminates HTTPS; Streamlit reaches PostgreSQL over the internal Docker network without needing a public database connection
 - AWS credentials and private keys are excluded from version control
 
 ## Engineering Decisions
@@ -213,7 +249,8 @@ The project was designed as a lightweight but complete data platform, prioritizi
 | PostgreSQL for both `RAW` and `ANALYTICS` | Simple, low-cost storage with clear schema separation |
 | Airflow for orchestration, dbt for transformation | Each tool does one job; ingestion and analytics logic stay decoupled |
 | Single Dockerized EC2 instance | Reproducible deployment without managed-service cost |
-| Streamlit hosted separately from the backend | Frontend isolated from the data platform; read-only access only |
+| Streamlit in a separate container on the same EC2 instance | Simple deployment with internal database access and no inactivity-based dashboard suspension |
+| Caddy in front of Streamlit | Automatic HTTPS and a single public web entry point |
 | Parameter-driven scoring instead of machine learning | Transparent, explainable and easy to calibrate |
 | Free or open-source technologies | Minimize recurring infrastructure cost |
 
