@@ -54,3 +54,5 @@ postgres-data/
 
 # --- Docker : surcharges locales éventuelles ---
 docker-compose.override.yml
+
+/deployment/streamlit-secrets.toml

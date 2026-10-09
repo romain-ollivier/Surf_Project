@@ -1,0 +1,26 @@
+services:
+  streamlit:
+    build:
+      context: ./streamlit
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./deployment/streamlit-secrets.toml:/app/.streamlit/secrets.toml:ro
+    depends_on:
+      surf-db:
+        condition: service_healthy
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - streamlit
+volumes:
+  caddy_data:
+  caddy_config:
