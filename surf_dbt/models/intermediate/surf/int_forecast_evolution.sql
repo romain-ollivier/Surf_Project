@@ -1,3 +1,5 @@
+-- Forecast evolution: historical horizon minus latest available forecast.
+-- These differences are revisions, not errors against field observations.
 SELECT
 
     -- =====================================================
@@ -28,64 +30,64 @@ SELECT
     f.cloud_cover_pct AS forecast_cloud_cover_pct,
 
     -- =====================================================
-    -- Actual observed conditions
+    -- Latest forecast reference
     -- =====================================================
 
-    a.air_temperature_c AS actual_air_temperature_c,
-    a.wind_speed_kmh AS actual_wind_speed_kmh,
-    a.wind_direction_deg AS actual_wind_direction_deg,
-    a.wind_gusts_kmh AS actual_wind_gusts_kmh,
-    a.precipitation_mm AS actual_precipitation_mm,
-    a.cloud_cover_pct AS actual_cloud_cover_pct,
+    a.air_temperature_c AS latest_forecast_air_temperature_c,
+    a.wind_speed_kmh AS latest_forecast_wind_speed_kmh,
+    a.wind_direction_deg AS latest_forecast_wind_direction_deg,
+    a.wind_gusts_kmh AS latest_forecast_wind_gusts_kmh,
+    a.precipitation_mm AS latest_forecast_precipitation_mm,
+    a.cloud_cover_pct AS latest_forecast_cloud_cover_pct,
 
     -- =====================================================
-    -- Forecast errors
+    -- Forecast revisions
     -- =====================================================
 
     f.air_temperature_c
         - a.air_temperature_c
-        AS temperature_error_c,
+        AS temperature_revision_c,
 
     ABS(
         f.air_temperature_c
         - a.air_temperature_c
-    ) AS temperature_absolute_error_c,
+    ) AS temperature_absolute_revision_c,
 
     f.wind_speed_kmh
         - a.wind_speed_kmh
-        AS wind_speed_error_kmh,
+        AS wind_speed_revision_kmh,
 
     ABS(
         f.wind_speed_kmh
         - a.wind_speed_kmh
-    ) AS wind_speed_absolute_error_kmh,
+    ) AS wind_speed_absolute_revision_kmh,
 
     f.wind_gusts_kmh
         - a.wind_gusts_kmh
-        AS wind_gusts_error_kmh,
+        AS wind_gusts_revision_kmh,
 
     ABS(
         f.wind_gusts_kmh
         - a.wind_gusts_kmh
-    ) AS wind_gusts_absolute_error_kmh,
+    ) AS wind_gusts_absolute_revision_kmh,
 
     f.precipitation_mm
         - a.precipitation_mm
-        AS precipitation_error_mm,
+        AS precipitation_revision_mm,
 
     ABS(
         f.precipitation_mm
         - a.precipitation_mm
-    ) AS precipitation_absolute_error_mm,
+    ) AS precipitation_absolute_revision_mm,
 
     f.cloud_cover_pct
         - a.cloud_cover_pct
-        AS cloud_cover_error_pct,
+        AS cloud_cover_revision_pct,
 
     ABS(
         f.cloud_cover_pct
         - a.cloud_cover_pct
-    ) AS cloud_cover_absolute_error_pct
+    ) AS cloud_cover_absolute_revision_pct
 
 FROM {{ ref('stg_open_meteo_forecast') }} AS f
 

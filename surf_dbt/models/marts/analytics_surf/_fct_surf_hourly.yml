@@ -7,7 +7,7 @@ models:
       Hourly surf forecast fact table at a grain of one row per surf spot
       and observation timestamp. Combines physical surf conditions with
       Wind, Swell, Tide and overall Surf Index scores for the current
-      7-day forecast window.
+      7-day forecast window. Only complete local calendar days are exposed.
 
     columns:
 
@@ -110,7 +110,9 @@ models:
         description: >
           Normalized position between the two adjacent detected tide extrema,
           from 0 at the lower level to 1 at the higher level. Null when a
-          complete, non-flat interval cannot be determined.
+          complete, non-flat interval cannot be determined upstream; incomplete days are excluded.
+        data_tests:
+          - not_null
 
       - name: tide_index
         description: >
@@ -120,11 +122,15 @@ models:
       # --------------------------------------------------
       # Final Surf Index
       # --------------------------------------------------
+        data_tests:
+          - not_null
 
       - name: surf_index
         description: >
           Overall hourly Surf Index combining Swell, Wind and Tide scores on a
           scale from 0 to 100. Null when a required component is unavailable.
+        data_tests:
+          - not_null
 
       - name: surf_quality_band
         description: >

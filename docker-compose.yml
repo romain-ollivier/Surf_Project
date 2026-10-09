@@ -47,14 +47,10 @@ x-airflow-common: &airflow-common
 services:
   # Application database (surf_data).
   # - AWS: used by Airflow/dbt/ingestion through the Docker network (DB_HOST=surf-db).
-  # - Port 5432 is intentionally published to the host so Streamlit Cloud can
-  #   reach this database remotely with a read-only role. Restrict inbound
-  #   access to this port via the EC2 security group (Streamlit Cloud's
-  #   egress IPs / your own IP only), never leave it open to 0.0.0.0/0.
+  # PostgreSQL is reachable only through the internal Compose network.
+  # Local administration can use docker compose exec surf-db psql.
   surf-db:
     image: postgres:18
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: "${DB_NAME:-surf_data}"
       POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"

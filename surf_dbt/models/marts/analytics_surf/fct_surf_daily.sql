@@ -2,6 +2,7 @@ WITH hourly AS (
 
     SELECT *
     FROM {{ ref('fct_surf_hourly') }}
+    WHERE is_surfable_light
 
 ),
 
@@ -33,6 +34,9 @@ daily AS (
 
         -- Surf Index
         AVG(surf_index) AS surf_index_avg,
+        AVG(swell_index) AS swell_index_avg,
+        AVG(wind_index) AS wind_index_avg,
+        AVG(tide_index) AS tide_index_avg,
         MIN(surf_index) AS surf_index_min,
         MAX(surf_index) AS surf_index_max,
 
@@ -41,8 +45,8 @@ daily AS (
 
         -- Quality bands
         COUNT(*) FILTER (
-            WHERE surf_quality_band = 'OPTIMAL'
-        ) AS optimal_hours,
+            WHERE surf_quality_band = 'EXCELLENT'
+        ) AS excellent_hours,
 
         COUNT(*) FILTER (
             WHERE surf_quality_band = 'VERY_GOOD'
@@ -57,8 +61,8 @@ daily AS (
         ) AS poor_hours,
 
         COUNT(*) FILTER (
-            WHERE surf_quality_band = 'VERY_POOR'
-        ) AS very_poor_hours,
+            WHERE surf_quality_band = 'FAIR'
+        ) AS fair_hours,
 
         -- Best hour
         MAX(
@@ -98,19 +102,14 @@ classified AS (
         *,
 
         CASE
-            WHEN surf_index_avg < 20
-                THEN 'VERY_POOR'
-
-            WHEN surf_index_avg < 40
-                THEN 'POOR'
-
-            WHEN surf_index_avg < 60
-                THEN 'GOOD'
-
-            WHEN surf_index_avg < 80
-                THEN 'VERY_GOOD'
-
-            ELSE 'OPTIMAL'
+            WHEN surf_index_avg >= 85
+                AND swell_index_avg >= 75
+                AND wind_index_avg >= 70
+                AND tide_index_avg >= 50 THEN 'EXCELLENT'
+            WHEN surf_index_avg >= 70 THEN 'VERY_GOOD'
+            WHEN surf_index_avg >= 50 THEN 'GOOD'
+            WHEN surf_index_avg >= 30 THEN 'FAIR'
+            ELSE 'POOR'
         END AS surf_quality_band
 
     FROM daily

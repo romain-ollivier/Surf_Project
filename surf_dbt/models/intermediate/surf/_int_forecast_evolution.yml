@@ -2,10 +2,10 @@ version: 2
 
 models:
 
-  - name: int_forecast_accuracy
+  - name: int_forecast_evolution
     description: >
       Comparaison entre les prévisions météorologiques historiques
-      d'Open-Meteo et les conditions météorologiques réellement observées
+      d'Open-Meteo et les dernières prévisions disponibles, sans observations terrain
       pour chaque spot et chaque horizon de prévision.
 
     columns:
@@ -35,7 +35,7 @@ models:
       - name: observation_time
         description: >
           Date et heure UTC correspondant aux conditions prévues
-          et observées.
+          et révisées.
         data_tests:
           - not_null
 
@@ -69,77 +69,77 @@ models:
         description: "Couverture nuageuse prévue en pourcentage."
 
       # =====================================================
-      # Actual observations
+      # Latest forecast reference
       # =====================================================
 
-      - name: actual_air_temperature_c
-        description: "Température de l'air observée en degrés Celsius."
+      - name: latest_forecast_air_temperature_c
+        description: "Température de l'air de la dernière prévision en degrés Celsius."
 
-      - name: actual_wind_speed_kmh
-        description: "Vitesse du vent observée en km/h."
+      - name: latest_forecast_wind_speed_kmh
+        description: "Vitesse du vent de la dernière prévision en km/h."
 
-      - name: actual_wind_direction_deg
-        description: "Direction du vent observée en degrés."
+      - name: latest_forecast_wind_direction_deg
+        description: "Direction du vent de la dernière prévision en degrés."
 
-      - name: actual_wind_gusts_kmh
-        description: "Rafales de vent observées en km/h."
+      - name: latest_forecast_wind_gusts_kmh
+        description: "Rafales de vent de la dernière prévision en km/h."
 
-      - name: actual_precipitation_mm
-        description: "Précipitations observées en millimètres."
+      - name: latest_forecast_precipitation_mm
+        description: "Précipitations de la dernière prévision en millimètres."
 
-      - name: actual_cloud_cover_pct
-        description: "Couverture nuageuse observée en pourcentage."
+      - name: latest_forecast_cloud_cover_pct
+        description: "Couverture nuageuse de la dernière prévision en pourcentage."
 
       # =====================================================
-      # Forecast errors
+      # Forecast revisions
       # =====================================================
 
-      - name: temperature_error_c
+      - name: temperature_revision_c
         description: >
-          Erreur signée entre la température prévue et la température observée,
+          Écart signé (ancienne prévision moins dernière prévision) entre la température prévue et la température de la dernière prévision,
           en degrés Celsius.
 
-      - name: temperature_absolute_error_c
+      - name: temperature_absolute_revision_c
         description: >
-          Valeur absolue de l'erreur de température,
+          Valeur absolue de la révision de température,
           en degrés Celsius.
 
-      - name: wind_speed_error_kmh
+      - name: wind_speed_revision_kmh
         description: >
-          Erreur signée entre la vitesse du vent prévue et observée,
+          Écart signé (ancienne prévision moins dernière prévision) entre la vitesse du vent prévue et de la dernière prévision,
           en km/h.
 
-      - name: wind_speed_absolute_error_kmh
+      - name: wind_speed_absolute_revision_kmh
         description: >
-          Valeur absolue de l'erreur de vitesse du vent,
+          Valeur absolue de la révision de vitesse du vent,
           en km/h.
 
-      - name: wind_gusts_error_kmh
+      - name: wind_gusts_revision_kmh
         description: >
-          Erreur signée entre les rafales prévues et observées,
+          Écart signé (ancienne prévision moins dernière prévision) entre les rafales prévues et de la dernière prévision,
           en km/h.
 
-      - name: wind_gusts_absolute_error_kmh
+      - name: wind_gusts_absolute_revision_kmh
         description: >
-          Valeur absolue de l'erreur de rafales,
+          Valeur absolue de la révision de rafales,
           en km/h.
 
-      - name: precipitation_error_mm
+      - name: precipitation_revision_mm
         description: >
-          Erreur signée entre les précipitations prévues et observées,
+          Écart signé (ancienne prévision moins dernière prévision) entre les précipitations prévues et de la dernière prévision,
           en millimètres.
 
-      - name: precipitation_absolute_error_mm
+      - name: precipitation_absolute_revision_mm
         description: >
-          Valeur absolue de l'erreur de précipitations,
+          Valeur absolue de la révision de précipitations,
           en millimètres.
 
-      - name: cloud_cover_error_pct
+      - name: cloud_cover_revision_pct
         description: >
-          Erreur signée entre la couverture nuageuse prévue et observée,
+          Écart signé (ancienne prévision moins dernière prévision) entre la couverture nuageuse prévue et de la dernière prévision,
           en points de pourcentage.
 
-      - name: cloud_cover_absolute_error_pct
+      - name: cloud_cover_absolute_revision_pct
         description: >
-          Valeur absolue de l'erreur de couverture nuageuse,
+          Valeur absolue de la révision de couverture nuageuse,
           en points de pourcentage.

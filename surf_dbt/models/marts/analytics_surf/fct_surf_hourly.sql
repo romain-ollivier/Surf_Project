@@ -1035,6 +1035,8 @@ surf_classified AS (
         *,
 
         CASE
+            WHEN surf_index IS NULL THEN NULL
+
             WHEN surf_index >= 85
                 AND swell_index >= 75
                 AND wind_index >= 70
@@ -1069,19 +1071,69 @@ tide_availability AS (
 
     FROM surf_classified
 )
+,
 
-SELECT
-    *
+expected_hours AS (
+    -- Local midnight boundaries preserve 23/25-hour daylight-saving days.
+    SELECT d.spot_id, d.observation_date AS local_date, h.observation_time
+    FROM {{ ref('stg_sunrise_sunset') }} AS d
+    INNER JOIN {{ ref('stg_surf_spots') }} AS spot USING (spot_id)
+    CROSS JOIN LATERAL GENERATE_SERIES(
+        d.observation_date::timestamp AT TIME ZONE spot.timezone,
+        (d.observation_date + 1)::timestamp AT TIME ZONE spot.timezone
+            - INTERVAL '1 hour',
+        INTERVAL '1 hour'
+    ) AS h(observation_time)
+),
 
-FROM tide_availability
+complete_days AS (
+    -- Check expected hours, not just rows that survived the source joins.
+    SELECT e.spot_id, e.local_date
+    FROM expected_hours AS e
+    LEFT JOIN tide_availability AS c
+        ON c.spot_id = e.spot_id
+        AND c.observation_time = e.observation_time
+    GROUP BY e.spot_id, e.local_date
+    HAVING BOOL_AND(
+        COALESCE(
+            c.observation_time >= CURRENT_DATE
+            AND c.observation_time < CURRENT_DATE + INTERVAL '7 days'
+            AND c.local_date = e.local_date
+            AND c.first_light IS NOT NULL
+            AND c.last_light IS NOT NULL
+            AND c.sunrise IS NOT NULL
+            AND c.sunset IS NOT NULL
+            AND c.wave_height_m IS NOT NULL
+            AND c.wave_period_s IS NOT NULL
+            AND c.wave_direction_deg IS NOT NULL
+            AND c.swell_height_m IS NOT NULL
+            AND c.swell_period_s IS NOT NULL
+            AND c.swell_direction_deg IS NOT NULL
+            AND c.wind_speed_kmh IS NOT NULL
+            AND c.wind_gusts_kmh IS NOT NULL
+            AND c.wind_direction_deg IS NOT NULL
+            AND c.sea_surface_temperature_c IS NOT NULL
+            AND c.water_level_m IS NOT NULL
+            AND c.tide_rate_m_per_hour IS NOT NULL
+            AND c.tide_phase <> 'UNKNOWN'
+            AND c.wind_speed_index IS NOT NULL
+            AND c.wind_direction_index IS NOT NULL
+            AND c.wind_index IS NOT NULL
+            AND c.swell_height_index IS NOT NULL
+            AND c.swell_period_index IS NOT NULL
+            AND c.calculated_swell_direction_index IS NOT NULL
+            AND c.size_index IS NOT NULL
+            AND c.swell_index IS NOT NULL
+            AND c.tide_position IS NOT NULL
+            AND c.tide_index IS NOT NULL
+            AND c.surf_index IS NOT NULL,
+            FALSE
+        )
+    )
+    AND COUNT(*) FILTER (WHERE c.is_surfable_light) > 0
+)
 
-WHERE observation_time >= CURRENT_DATE
-  AND observation_time < CURRENT_DATE + INTERVAL '7 days'
-
-  -- Required components for Surf Index
-  AND wind_speed_index IS NOT NULL
-  AND wind_direction_index IS NOT NULL
-  AND swell_index IS NOT NULL
-
-  -- Exclude hours beyond the last spot-specific reliable tide observation
-  AND observation_time <= last_reliable_tide_observation_time
+SELECT c.*
+FROM tide_availability AS c
+INNER JOIN complete_days AS d
+    ON c.spot_id = d.spot_id AND c.local_date = d.local_date

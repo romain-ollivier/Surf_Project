@@ -129,14 +129,14 @@ def load_surf_data():
 
     query = """
         SELECT
-            spot_id,
-            spot_name,
-            timezone,
+            h.spot_id,
+            h.spot_name,
+            h.timezone,
             observation_time,
-            local_observation_time,
-            local_date,
+            h.local_observation_time,
+            h.local_date,
 
-            wave_height_m,
+            h.wave_height_m,
             wave_period_s,
             wave_direction_deg,
 
@@ -158,7 +158,9 @@ def load_surf_data():
             tide_index,
 
             surf_index,
-            surf_quality_band,
+            h.surf_quality_band,
+            d.surf_index_avg AS daily_surf_index,
+            d.surf_quality_band AS daily_quality,
 
             sea_surface_temperature_c,
 
@@ -168,10 +170,12 @@ def load_surf_data():
             is_daylight,
             is_surfable_light
 
-        FROM analytics.fct_surf_hourly
+        FROM analytics.fct_surf_hourly AS h
+        INNER JOIN analytics.fct_surf_daily AS d
+            ON h.spot_id = d.spot_id AND h.local_date = d.local_date
 
         ORDER BY
-            spot_name,
+            h.spot_name,
             observation_time
     """
 
@@ -254,22 +258,10 @@ available_dates = sorted(
     .unique()
 )
 
-# Hide the final local day when the forecast window only covers part of it.
-# The first local day is intentionally kept, since UTC boundaries can make it
-# start on the previous calendar day for western timezones such as Honolulu.
-if available_dates:
-    last_date = available_dates[-1]
-    last_day_rows = spot_df[
-        spot_df["local_date"] == last_date
-    ]
-
-    if not last_day_rows.empty:
-        last_local_time = last_day_rows[
-            "local_observation_time"
-        ].max()
-
-        if last_local_time.hour < 23:
-            available_dates = available_dates[:-1]
+# dbt exposes only complete local days with all required forecast fields.
+if not available_dates:
+    st.warning("No complete forecast days are available for this spot.")
+    st.stop()
 
 
 with col_date:
@@ -321,20 +313,10 @@ surfable_df = surfable_df.sort_values(
 # DAILY SURF SUMMARY
 # ============================================================
 
-daily_surf_index = (
-    surfable_df["surf_index"]
-    .mean()
-)
-
-
-best_row = surfable_df.loc[
-    surfable_df["surf_index"].idxmax()
-]
-
-
-daily_quality = best_row[
-    "surf_quality_band"
-]
+daily_surf_index = day_df["daily_surf_index"].iloc[0]
+daily_quality = day_df["daily_quality"].iloc[0]
+best_row = surfable_df.loc[surfable_df["surf_index"].idxmax()]
+best_quality = best_row["surf_quality_band"]
 
 
 # ============================================================
@@ -358,7 +340,7 @@ with summary_col2:
 
     st.metric(
         "Best Quality",
-        quality_display(daily_quality)
+        quality_display(best_quality)
     )
 
 
