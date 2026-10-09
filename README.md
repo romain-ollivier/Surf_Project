@@ -4,7 +4,7 @@
 
 **Stack:** Python · Apache Airflow · PostgreSQL · dbt · Docker Compose · AWS EC2 · Streamlit
 
-### 🔗 [Live Demo — Streamlit Dashboard](https://surfproject-7lqwunii9pg4f4wvqeqyot.streamlit.app/)
+### 🔗 [Live Demo — Streamlit Dashboard](https://surf-project.duckdns.org/)
 
 ![End-to-End Data Engineering Architecture: Python ingestion, Airflow orchestration, PostgreSQL RAW and ANALYTICS, dbt transformations, Streamlit dashboard, deployed with Docker on AWS EC2](Surf_Data_TA-1.png)
 
