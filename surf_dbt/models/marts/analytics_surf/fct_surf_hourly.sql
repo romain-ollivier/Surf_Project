@@ -1074,7 +1074,7 @@ tide_availability AS (
 ,
 
 expected_hours AS (
-    -- Local midnight boundaries preserve 23/25-hour daylight-saving days.
+    -- Generate local hours, then check only the complete surfable-light window.
     SELECT d.spot_id, d.observation_date AS local_date, h.observation_time
     FROM {{ ref('stg_sunrise_sunset') }} AS d
     INNER JOIN {{ ref('stg_surf_spots') }} AS spot USING (spot_id)
@@ -1084,6 +1084,10 @@ expected_hours AS (
             - INTERVAL '1 hour',
         INTERVAL '1 hour'
     ) AS h(observation_time)
+    WHERE d.first_light IS NOT NULL
+      AND d.last_light IS NOT NULL
+      AND h.observation_time >= d.first_light
+      AND h.observation_time <= d.last_light
 ),
 
 complete_days AS (
@@ -1137,3 +1141,4 @@ SELECT c.*
 FROM tide_availability AS c
 INNER JOIN complete_days AS d
     ON c.spot_id = d.spot_id AND c.local_date = d.local_date
+WHERE c.is_surfable_light

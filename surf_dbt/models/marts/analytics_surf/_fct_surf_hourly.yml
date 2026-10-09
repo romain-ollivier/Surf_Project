@@ -7,7 +7,7 @@ models:
       Hourly surf forecast fact table at a grain of one row per surf spot
       and observation timestamp. Combines physical surf conditions with
       Wind, Swell, Tide and overall Surf Index scores for the current
-      7-day forecast window. Only complete local calendar days are exposed.
+      7-day forecast window. Only complete surfable-light windows for each local day are exposed.
 
     columns:
 
@@ -110,7 +110,7 @@ models:
         description: >
           Normalized position between the two adjacent detected tide extrema,
           from 0 at the lower level to 1 at the higher level. Null when a
-          complete, non-flat interval cannot be determined upstream; incomplete days are excluded.
+          complete, non-flat interval cannot be determined upstream; incomplete surfable-light windows are excluded.
         data_tests:
           - not_null
 
