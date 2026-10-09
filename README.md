@@ -122,7 +122,7 @@ Marts are materialized as tables to give dashboard queries stable analytical dat
 
 ### Data Quality & Testing
 
-Automated dbt tests cover primary-key uniqueness, non-null critical fields, referential integrity, accepted values and model-level consistency. The latest `dbt build` completed successfully with **213 dbt checks and models passing**, with no errors or warnings.
+Automated dbt tests cover primary-key uniqueness, non-null critical fields, referential integrity, accepted values and model-level consistency. The latest `dbt build` completed successfully with **218 dbt checks and models passing**, with no errors or warnings.
 
 Because tests run as part of `dbt build`, data is validated before it reaches the dashboard.
 
