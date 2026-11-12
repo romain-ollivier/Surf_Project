@@ -17,6 +17,9 @@ SELECT
     chart_datum,
     datums_source,
 
+    is_active,
+    valid_from,
+    valid_to,
     ingested_at
 
 FROM {{ source('tides', 'tide_stations') }}

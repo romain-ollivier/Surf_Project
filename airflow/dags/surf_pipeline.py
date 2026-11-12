@@ -1,4 +1,4 @@
-"""Daily surf-data ingestion followed by the dbt project build.
+"""Daily operational surf-data refresh with independent forecast-history ingestion.
 
 The ingestion callables own their provider logic and database connections.
 All date-windowed tasks use the same UTC Airflow data-interval boundary, so a
@@ -105,10 +105,11 @@ with DAG(
         ),
     )
 
+    # Forecast history remains observable, but cannot block the live dashboard.
+    # Its failure still marks the DAG run as failed.
     ingestion_tasks = [
         ingest_weather_task,
         ingest_marine_task,
-        ingest_forecast_task,
         ingest_sunrise_sunset_task,
         ingest_tides_task,
     ]

@@ -219,6 +219,7 @@ tide_base AS (
 
     SELECT
         ts.spot_id,
+        t.tide_station_id,
         t.observation_time,
         t.water_level_m
 
@@ -226,6 +227,8 @@ tide_base AS (
 
     INNER JOIN {{ ref('stg_tide_stations') }} AS ts
         ON t.tide_station_id = ts.tide_station_id
+        AND (ts.valid_from IS NULL OR t.observation_time >= ts.valid_from)
+        AND (ts.valid_to IS NULL OR t.observation_time < ts.valid_to)
 ),
 
 tide_features AS (
@@ -235,11 +238,14 @@ tide_features AS (
         observation_time,
         water_level_m,
 
-        water_level_m
-        - LAG(water_level_m) OVER (
-            PARTITION BY spot_id
-            ORDER BY observation_time
-        ) AS tide_rate_m_per_hour
+        CASE
+            WHEN observation_time - LAG(observation_time) OVER (
+                PARTITION BY spot_id, tide_station_id ORDER BY observation_time
+            ) = INTERVAL '1 hour'
+            THEN water_level_m - LAG(water_level_m) OVER (
+                PARTITION BY spot_id, tide_station_id ORDER BY observation_time
+            )
+        END AS tide_rate_m_per_hour
 
     FROM tide_base
 ),
