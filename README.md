@@ -79,13 +79,13 @@ Historical forecast data is handled separately from the operational forecast pip
 
 ## Orchestration with Apache Airflow
 
-Airflow coordinates the ingestion jobs and ensures that the transformation runs only after source data has been collected. The pipeline is a single DAG, `surf_pipeline`, scheduled daily:
+Airflow coordinates ingestion and waits for the four operational sources before rebuilding the dashboard datasets. The pipeline is a single DAG, `surf_pipeline`, scheduled daily:
 
 ```text
 Scheduled Run → Parallel Ingestion Tasks → dbt build → Analytics Dataset
 ```
 
-Ingestion tasks cover weather, marine forecast, historical forecast, sunrise/sunset and tide data. Non-critical WSL and Copernicus sources are kept outside the daily DAG so temporary provider issues cannot block the production analytics refresh.
+Weather, marine, sunrise/sunset and tide ingestion are prerequisites for `dbt_build`. Forecast-history ingestion runs independently: a provider failure remains visible in Airflow but does not block the dashboard build. History analysis uses the latest successfully ingested data available at build time. WSL and Copernicus remain outside the daily DAG.
 
 **Reliability settings**
 
@@ -122,9 +122,16 @@ Marts are materialized as tables to give dashboard queries stable analytical dat
 
 ### Data Quality & Testing
 
-Automated dbt tests cover primary-key uniqueness, non-null critical fields, referential integrity, accepted values and model-level consistency. The latest `dbt build` completed successfully with **218 dbt checks and models passing**, with no errors or warnings.
+Automated dbt tests cover primary-key uniqueness, non-null critical fields, referential integrity, accepted values and model-level consistency. The deployed build validated on **11 November 2026** completed **220 operations: 196 data tests, 20 models and 4 seeds**, with no errors or warnings. This is a recorded validation result, not a live status badge.
 
-Because tests run as part of `dbt build`, data is validated before it reaches the dashboard.
+Tests run as part of `dbt build`. A successful build validates its selected models; publication across all marts is not atomic.
+
+### Tide source traceability
+
+Tide observations retain their provider station identifier. Station validity windows
+preserve historical sources while ingestion selects one active station per spot.
+Hourly tide-rate calculations require consecutive samples from the same station;
+dbt tests detect overlapping station windows and invalid active-station assignments.
 
 ### Why dbt?
 
@@ -226,8 +233,16 @@ The project was designed as a lightweight but complete data platform, prioritizi
 
 **Reliability and maintainability** come from Airflow retries, date-windowed ingestion for reproducible runs, overlap prevention, persistent volumes, a layered architecture, containerized execution and dbt tests run before data is exposed to the dashboard.
 
+## Running and maintaining the project
+
+See [the operations guide](docs/operations.md) for database prerequisites, schema
+upgrades, station replacement, validation commands and provider-failure behavior.
+The current repository requires an existing application database; a complete fresh
+RAW-schema bootstrap is not yet included.
+
 ## Future Improvements
 
+- Add a complete empty-database bootstrap
 - Calibrate the Surf Index using historical observed surf conditions
 - Integrate forecast-error analysis to estimate forecast reliability
 - Expand the number of surf spots and data sources

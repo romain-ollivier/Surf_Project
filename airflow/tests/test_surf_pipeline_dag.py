@@ -23,6 +23,7 @@ EXPECTED_INGESTION_TASKS = {
     "ingest_sunrise_sunset",
     "ingest_tides",
 }
+CORE_INGESTION_TASKS = EXPECTED_INGESTION_TASKS - {"ingest_forecast"}
 EXPECTED_TASKS = EXPECTED_INGESTION_TASKS | {"dbt_build"}
 DAG_FILE = Path(__file__).resolve().parents[1] / "dags" / "surf_pipeline.py"
 REPOSITORY_ROOT = DAG_FILE.parents[2]
@@ -202,13 +203,16 @@ class SurfPipelineDAGTests(unittest.TestCase):
 
     def test_dependencies_are_independent_and_acyclic(self):
         dbt_task = self.dag.tasks["dbt_build"]
-        self.assertEqual(dbt_task.upstream_task_ids, EXPECTED_INGESTION_TASKS)
+        self.assertEqual(dbt_task.upstream_task_ids, CORE_INGESTION_TASKS)
         self.assertEqual(dbt_task.downstream_task_ids, set())
 
         for task_id in EXPECTED_INGESTION_TASKS:
             task = self.dag.tasks[task_id]
             self.assertEqual(task.upstream_task_ids, set())
-            self.assertEqual(task.downstream_task_ids, {"dbt_build"})
+            self.assertEqual(
+                task.downstream_task_ids,
+                {"dbt_build"} if task_id in CORE_INGESTION_TASKS else set(),
+            )
 
         visited = set()
         active = set()
@@ -281,6 +285,13 @@ class SurfPipelineDAGTests(unittest.TestCase):
         }
         self.assertTrue(_can_run_all_success(dbt_task, successful_states))
         self.assertEqual(dbt_task.execute_calls, 0)
+
+    def test_forecast_history_failure_does_not_block_dashboard(self):
+        states = {task_id: "success" for task_id in CORE_INGESTION_TASKS}
+        for state in ("failed", "up_for_retry", "running", None):
+            with self.subTest(forecast_state=state):
+                states["ingest_forecast"] = state
+                self.assertTrue(_can_run_all_success(self.dag.tasks["dbt_build"], states))
 
     def test_ingestion_functions_are_direct_task_callables(self):
         from src.ingestion import airflow_jobs

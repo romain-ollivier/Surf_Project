@@ -56,3 +56,9 @@ postgres-data/
 docker-compose.override.yml
 
 /deployment/streamlit-secrets.toml
+
+# Local maintenance artifacts
+*.bak
+*.bak-*
+/backups/
+/repair_surf_stations.py

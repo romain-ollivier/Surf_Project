@@ -122,7 +122,7 @@ def get_tide_station(connection, spot_id):
                 chart_datum,
                 datums_source
             FROM raw.tide_stations
-            WHERE spot_id = %s
+            WHERE spot_id = %s AND is_active
             """,
             (spot_id,),
         )
@@ -175,7 +175,7 @@ def save_tide_station(connection, spot_id, station):
                 %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s
             )
-            ON CONFLICT (spot_id)
+            ON CONFLICT (spot_id) WHERE is_active
             DO UPDATE SET
                 tide_station_id = EXCLUDED.tide_station_id,
                 station_name = EXCLUDED.station_name,
